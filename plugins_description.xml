@@ -1,7 +1,12 @@
-<library path="rviz2_bag_player">
+<library path="rviz2_bag">
     <class name="rviz2_bag/Player" type="rviz2_bag::RViz2Bag_Player" base_class_type="rviz_common::Panel">
         <description>
             ROS2 BAG Player on RViz2
+        </description>
+    </class>
+    <class name="rviz2_bag/Recorder" type="rviz2_bag::RViz2Bag_Recorder" base_class_type="rviz_common::Panel">
+        <description>
+            ROS2 BAG Recorder on RViz2
         </description>
     </class>
 </library>
