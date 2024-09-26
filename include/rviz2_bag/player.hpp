@@ -8,6 +8,9 @@
 #include <rviz_common/panel.hpp>
 #include <rviz_common/config.hpp>
 #include <rviz_common/display_context.hpp>
+#include <rosbag2_transport/play_options.hpp>
+#include <rosbag2_transport/player.hpp>
+#include <rosbag2_storage/storage_options.hpp>
 #include <QtWidgets>
 #endif
 
