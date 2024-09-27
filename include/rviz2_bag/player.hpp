@@ -20,40 +20,44 @@
 namespace Ui
 {
 
-class Player;
+    class Player;
 
 } // namespace Ui
-
 
 namespace rviz2_bag
 {
 
-class RViz2Bag_Player : public rviz_common::Panel
-{
-    Q_OBJECT
-public:
-    RViz2Bag_Player(QWidget *parent = nullptr);
-    ~RViz2Bag_Player();
+    class RViz2Bag_Player : public rviz_common::Panel
+    {
+        Q_OBJECT
+    public:
+        RViz2Bag_Player(QWidget *parent = nullptr);
+        ~RViz2Bag_Player();
 
-    void onInitialize() override;
-    void load(const rviz_common::Config &config) override;
-    void save(rviz_common::Config config) const override;
+        void onInitialize() override;
+        void load(const rviz_common::Config &config) override;
+        void save(rviz_common::Config config) const override;
 
-protected Q_SLOTS:
-    void pbtn__rosbag_open__callback();
-    void pbtn__select_all__callback();
-    void pbtn__deselect_all__callback();
+    protected Q_SLOTS:
+        void pbtn__rosbag_open__callback();
+        void pbtn__select_all__callback();
+        void pbtn__deselect_all__callback();
+        void pbtn__rosbag_play__callback();
+        void pbtn__rosbag_stop__callback();
+        void pbtn__rosbag_pause__callback();
+        void pbtn__backward__callback();
+        void pbtn__play_next__callback();
 
-protected:
-    rclcpp::Node::SharedPtr nh_;
-    Ui::Player* ui_player_;
-    
-    std::shared_ptr<rosbag2_storage::StorageOptions> storage_options;
+    protected:
+        rclcpp::Node::SharedPtr nh_;
+        Ui::Player *ui_player_;
 
-    void list_check_all(Qt::CheckState state);
-};
-    
+        std::shared_ptr<rosbag2_storage::StorageOptions> storage_options_;
+        std::shared_ptr<rosbag2_transport::Player> bag_player_;
+
+        void list_check_all(Qt::CheckState state);
+    };
+
 } // namespace rviz2_bag
-
 
 #endif // RVIZ2_BAG__PLAYER_HPP_
