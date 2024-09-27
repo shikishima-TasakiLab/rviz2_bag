@@ -30,12 +30,12 @@ qt5_wrap_ui(UIC_FILES
 )
 
 add_library(rviz2_bag SHARED
+  ${UIC_FILES}
   include/rviz2_bag/player.hpp
   include/rviz2_bag/recorder.hpp
   src/player.cpp
   src/recorder.cpp
   src/icons/icons.qrc
-  ${UIC_FILES}
 )
 
 target_compile_features(rviz2_bag PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17

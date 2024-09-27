@@ -10,8 +10,9 @@
 #include <rviz_common/display_context.hpp>
 #include <rosbag2_transport/play_options.hpp>
 #include <rosbag2_transport/player.hpp>
+#include <rosbag2_storage/metadata_io.hpp>
 #include <rosbag2_storage/storage_options.hpp>
-#include <QtWidgets>
+#include <QtWidgets/QFileDialog>
 
 #include "ui_player.h"
 #endif
@@ -38,9 +39,18 @@ public:
     void load(const rviz_common::Config &config) override;
     void save(rviz_common::Config config) const override;
 
+protected Q_SLOTS:
+    void pbtn__rosbag_open__callback();
+    void pbtn__select_all__callback();
+    void pbtn__deselect_all__callback();
+
 protected:
     rclcpp::Node::SharedPtr nh_;
     Ui::Player* ui_player_;
+    
+    std::shared_ptr<rosbag2_storage::StorageOptions> storage_options;
+
+    void list_check_all(Qt::CheckState state);
 };
     
 } // namespace rviz2_bag
