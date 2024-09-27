@@ -12,7 +12,17 @@
 #include <rosbag2_transport/player.hpp>
 #include <rosbag2_storage/storage_options.hpp>
 #include <QtWidgets>
+
+#include "ui_player.h"
 #endif
+
+namespace Ui
+{
+
+class Player;
+
+} // namespace Ui
+
 
 namespace rviz2_bag
 {
@@ -30,6 +40,7 @@ public:
 
 protected:
     rclcpp::Node::SharedPtr nh_;
+    Ui::Player* ui_player_;
 };
     
 } // namespace rviz2_bag

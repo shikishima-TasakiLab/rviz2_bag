@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+  <class>Player</class>
+  <widget class="QWidget" name="Player">
+    <property name="windowTitle">
+      <string>Form</string>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+            <widget class="QLineEdit" name="ledit__rosbag_dir">
+              <property name="sizePolicy">
+                <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                </sizepolicy>
+              </property>
+              <property name="text">
+                <string notr="true" />
+              </property>
+              <property name="readOnly">
+                <bool>true</bool>
+              </property>
+              <property name="placeholderText">
+                <string notr="true">ROSBAG directory</string>
+              </property>
+            </widget>
+          </item>
+          <item>
+            <widget class="QPushButton" name="pbtn__rosbag_open">
+              <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                </sizepolicy>
+              </property>
+              <property name="text">
+                <string>Open</string>
+              </property>
+            </widget>
+          </item>
+        </layout>
+      </item>
+      <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item>
+            <layout class="QHBoxLayout" name="hl__rosbag_clock">
+              <item>
+                <widget class="QLabel" name="label__rosbag_clock">
+                  <property name="text">
+                    <string>/clock</string>
+                  </property>
+                </widget>
+              </item>
+              <item>
+                <widget class="QDoubleSpinBox" name="dspin__rosbag_clock">
+                  <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                  <property name="suffix">
+                    <string> Hz</string>
+                  </property>
+                  <property name="maximum">
+                    <double>1000.000000000000000</double>
+                  </property>
+                  <property name="value">
+                    <double>40.000000000000000</double>
+                  </property>
+                </widget>
+              </item>
+            </layout>
+          </item>
+          <item>
+            <layout class="QHBoxLayout" name="hl__rosbag_rate">
+              <item>
+                <widget class="QLabel" name="label__rosbag_rate">
+                  <property name="text">
+                    <string>Rate</string>
+                  </property>
+                </widget>
+              </item>
+              <item>
+                <widget class="QDoubleSpinBox" name="dspin__rosbag_rate">
+                  <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                  <property name="decimals">
+                    <number>3</number>
+                  </property>
+                  <property name="minimum">
+                    <double>0.001000000000000</double>
+                  </property>
+                  <property name="maximum">
+                    <double>1000.000000000000000</double>
+                  </property>
+                  <property name="value">
+                    <double>1.000000000000000</double>
+                  </property>
+                </widget>
+              </item>
+            </layout>
+          </item>
+          <item>
+            <layout class="QHBoxLayout" name="hl__rosbag_loop">
+              <item>
+                <widget class="QCheckBox" name="check__rosbag_loop">
+                  <property name="text">
+                    <string>Loop</string>
+                  </property>
+                </widget>
+              </item>
+            </layout>
+          </item>
+        </layout>
+      </item>
+      <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <item>
+            <widget class="QPushButton" name="pbtn__rosbag_play">
+              <property name="enabled">
+                <bool>false</bool>
+              </property>
+              <property name="text">
+                <string />
+              </property>
+              <property name="icon">
+                <iconset>
+                  <normaloff>:/icons/play.svg</normaloff>:/icons/play.svg</iconset>
+              </property>
+            </widget>
+          </item>
+          <item>
+            <widget class="QPushButton" name="pbtn__rosbag_stop">
+              <property name="enabled">
+                <bool>false</bool>
+              </property>
+              <property name="text">
+                <string />
+              </property>
+              <property name="icon">
+                <iconset>
+                  <normaloff>:/icons/stop.svg</normaloff>:/icons/stop.svg</iconset>
+              </property>
+            </widget>
+          </item>
+          <item>
+            <widget class="QPushButton" name="pbtn__rosbag_pause">
+              <property name="enabled">
+                <bool>false</bool>
+              </property>
+              <property name="text">
+                <string />
+              </property>
+              <property name="icon">
+                <iconset>
+                  <normaloff>:/icons/pause.svg</normaloff>:/icons/pause.svg</iconset>
+              </property>
+            </widget>
+          </item>
+          <item>
+            <widget class="QLineEdit" name="ledit__rosbag_time">
+              <property name="sizePolicy">
+                <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                </sizepolicy>
+              </property>
+              <property name="readOnly">
+                <bool>true</bool>
+              </property>
+              <property name="placeholderText">
+                <string>Timestamp</string>
+              </property>
+            </widget>
+          </item>
+        </layout>
+      </item>
+      <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_5">
+          <item>
+            <widget class="QPushButton" name="pbtn__backward">
+              <property name="enabled">
+                <bool>false</bool>
+              </property>
+              <property name="text">
+                <string />
+              </property>
+              <property name="icon">
+                <iconset>
+                  <normaloff>:/icons/backward.svg</normaloff>:/icons/backward.svg</iconset>
+              </property>
+            </widget>
+          </item>
+          <item>
+            <widget class="QSlider" name="hsld__rosbag_time">
+              <property name="enabled">
+                <bool>false</bool>
+              </property>
+              <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+              </property>
+            </widget>
+          </item>
+          <item>
+            <widget class="QPushButton" name="pbtn__play_next">
+              <property name="enabled">
+                <bool>false</bool>
+              </property>
+              <property name="text">
+                <string />
+              </property>
+              <property name="icon">
+                <iconset>
+                  <normaloff>:/icons/next.svg</normaloff>:/icons/next.svg</iconset>
+              </property>
+            </widget>
+          </item>
+        </layout>
+      </item>
+      <item>
+        <layout class="QHBoxLayout" name="hl__topic_select">
+          <item>
+            <widget class="QPushButton" name="pbtn__select_all">
+              <property name="text">
+                <string>Select All</string>
+              </property>
+            </widget>
+          </item>
+          <item>
+            <widget class="QPushButton" name="pbtn__deselect_all">
+              <property name="text">
+                <string>Deselect All</string>
+              </property>
+            </widget>
+          </item>
+        </layout>
+      </item>
+      <item>
+        <widget class="QListWidget" name="list__rosbag_topic">
+          <property name="enabled">
+            <bool>false</bool>
+          </property>
+          <property name="selectionMode">
+            <enum>QAbstractItemView::NoSelection</enum>
+          </property>
+          <property name="selectionBehavior">
+            <enum>QAbstractItemView::SelectRows</enum>
+          </property>
+        </widget>
+      </item>
+    </layout>
+  </widget>
+  <resources />
+  <connections />
+</ui>

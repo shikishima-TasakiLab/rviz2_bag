@@ -13,21 +13,37 @@ find_package(rviz_common REQUIRED)
 find_package(rosbag2_interfaces REQUIRED)
 find_package(rosbag2_storage REQUIRED)
 find_package(rosbag2_transport REQUIRED)
+find_package(Qt5 ${rviz_QT_VERSION} REQUIRED Core Widgets)
+macro(qt_wrap_ui)
+  qt5_wrap_ui(${ARGN})
+endmacro()
 
+add_definitions(-DQT_NO_KEYWORDS)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+
+pluginlib_export_plugin_description_file(rviz_common plugins_description.xml)
+
+qt5_wrap_ui(UIC_FILES
+  src/ui/player.ui
+)
 
 add_library(rviz2_bag SHARED
   include/rviz2_bag/player.hpp
   include/rviz2_bag/recorder.hpp
   src/player.cpp
   src/recorder.cpp
+  src/icons/icons.qrc
+  ${UIC_FILES}
 )
 
 target_compile_features(rviz2_bag PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 target_include_directories(rviz2_bag PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
-  # ${Qt5Widgets_INCLUDE_DIRS}
+  ${Qt5Core_INCLUDE_DIRS}
+  ${Qt5Widgets_INCLUDE_DIRS}
 )
 ament_target_dependencies(
   rviz2_bag
@@ -44,12 +60,14 @@ ament_target_dependencies(
 # which is appropriate when building the dll but not consuming it.
 target_compile_definitions(rviz2_bag PUBLIC "RVIZ2_BAG_PLAYER_BUILDING_LIBRARY")
 
-pluginlib_export_plugin_description_file(rviz_common plugins_description.xml)
-
 install(
   DIRECTORY include/
   DESTINATION include/${PROJECT_NAME}
 )
+# install(
+#   DIRECTORY icons
+#   DESTINATION share/${PROJECT_NAME}
+# )
 install(
   TARGETS rviz2_bag
   EXPORT export_${PROJECT_NAME}

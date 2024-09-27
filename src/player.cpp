@@ -5,7 +5,9 @@ namespace rviz2_bag
 
 RViz2Bag_Player::RViz2Bag_Player(QWidget *parent)
 : rviz_common::Panel(parent)
+, ui_player_(new Ui::Player())
 {
+    ui_player_->setupUi(this);
     // init_qt_panel();
 }
 
