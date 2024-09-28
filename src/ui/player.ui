@@ -17,6 +17,19 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
+      <widget class="QPushButton" name="pbtn__rosbag_open">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Open</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QLineEdit" name="ledit__rosbag_dir">
        <property name="sizePolicy">
         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
@@ -32,19 +45,6 @@
        </property>
        <property name="placeholderText">
         <string notr="true">ROSBAG directory</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pbtn__rosbag_open">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>Open</string>
        </property>
       </widget>
      </item>
@@ -139,20 +139,6 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pbtn__rosbag_stop">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="icon">
-        <iconset>
-         <normaloff>:/icons/stop.svg</normaloff>:/icons/stop.svg</iconset>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QPushButton" name="pbtn__rosbag_pause">
        <property name="enabled">
         <bool>false</bool>
@@ -163,6 +149,20 @@
        <property name="icon">
         <iconset>
          <normaloff>:/icons/pause.svg</normaloff>:/icons/pause.svg</iconset>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pbtn__rosbag_stop">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset>
+         <normaloff>:/icons/stop.svg</normaloff>:/icons/stop.svg</iconset>
        </property>
       </widget>
      </item>
@@ -199,14 +199,7 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_5">
      <item>
-      <widget class="QLabel" name="label__rosbag_starttime">
-       <property name="text">
-        <string>Start Time</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QSpinBox" name="spin__rosbag_starttime">
+      <widget class="QDoubleSpinBox" name="dspin__rosbag_elapsed_time">
        <property name="enabled">
         <bool>false</bool>
        </property>
@@ -219,12 +212,15 @@
       </widget>
      </item>
      <item>
-      <widget class="QSlider" name="hsld__rosbag_starttime">
+      <widget class="QSlider" name="hsld__rosbag_elapsed_time">
        <property name="enabled">
         <bool>false</bool>
        </property>
        <property name="maximum">
         <number>100</number>
+       </property>
+       <property name="pageStep">
+        <number>1</number>
        </property>
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
@@ -237,6 +233,9 @@
     <layout class="QHBoxLayout" name="hl__topic_select">
      <item>
       <widget class="QPushButton" name="pbtn__select_all">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="text">
         <string>Select All</string>
        </property>
@@ -244,6 +243,9 @@
      </item>
      <item>
       <widget class="QPushButton" name="pbtn__deselect_all">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="text">
         <string>Deselect All</string>
        </property>
