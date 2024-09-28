@@ -181,7 +181,7 @@ void Player::play()
         is_ready_to_play_from_queue_ = false;
         ready_to_play_from_queue_cv_.notify_all();
       }
-    } while (rclcpp::ok() && no_stop_request && play_options_.loop);
+    } while (rclcpp::ok() && no_stop_request_ && play_options_.loop);
   } catch (std::runtime_error & e) {
     RCLCPP_ERROR(nh_->get_logger(), "Failed to play: %s", e.what());
   }
@@ -225,7 +225,7 @@ void Player::pause()
 
 void Player::stop()
 {
-  no_stop_request = false;
+  no_stop_request_ = false;
   RCLCPP_INFO_STREAM(nh_->get_logger(), "Stopping play.");
 }
 
@@ -264,7 +264,7 @@ bool Player::set_rate(double rate)
 rosbag2_storage::SerializedBagMessageSharedPtr Player::peek_next_message_from_queue()
 {
   rosbag2_storage::SerializedBagMessageSharedPtr * message_ptr_ptr = message_queue_.peek();
-  while (message_ptr_ptr == nullptr && !is_storage_completely_loaded() && rclcpp::ok() && no_stop_request) {
+  while (message_ptr_ptr == nullptr && !is_storage_completely_loaded() && rclcpp::ok() && no_stop_request_) {
     RCLCPP_WARN_THROTTLE(
       nh_->get_logger(),
       *nh_->get_clock(),
@@ -318,6 +318,7 @@ bool Player::play_next()
     message_queue_.pop();
     message_ptr = peek_next_message_from_queue();
   }
+  clockUpdated(clock_->now());
   return next_message_published;
 }
 
@@ -361,7 +362,7 @@ void Player::seek(rcutils_time_point_value_t time_point)
     clock_->jump(time_point);
     // Restart queuing thread if it has finished running (previously reached end of bag),
     // otherwise, queueing should continue automatically after releasing mutex
-    if (is_storage_completely_loaded() && rclcpp::ok() && no_stop_request) {
+    if (is_storage_completely_loaded() && rclcpp::ok() && no_stop_request_) {
       storage_loading_future_ =
         std::async(std::launch::async, [this]() {load_storage_content();});
     }
@@ -372,7 +373,7 @@ void Player::wait_for_filled_queue() const
 {
   while (
     message_queue_.size_approx() < play_options_.read_ahead_queue_size &&
-    !is_storage_completely_loaded() && rclcpp::ok() && no_stop_request)
+    !is_storage_completely_loaded() && rclcpp::ok() && no_stop_request_)
   {
     std::this_thread::sleep_for(queue_read_wait_period_);
   }
@@ -384,7 +385,7 @@ void Player::load_storage_content()
     static_cast<size_t>(play_options_.read_ahead_queue_size * read_ahead_lower_bound_percentage_);
   auto queue_upper_boundary = play_options_.read_ahead_queue_size;
 
-  while (rclcpp::ok() && no_stop_request) {
+  while (rclcpp::ok() && no_stop_request_) {
     TSAUniqueLock lk(reader_mutex_);
     if (!reader_->has_next()) {break;}
 
@@ -422,16 +423,16 @@ void Player::play_messages_from_queue()
     is_ready_to_play_from_queue_ = true;
     ready_to_play_from_queue_cv_.notify_all();
   }
-  while (message_ptr != nullptr && rclcpp::ok() && no_stop_request) {
+  while (message_ptr != nullptr && rclcpp::ok() && no_stop_request_) {
     // Do not move on until sleep_until returns true
     // It will always sleep, so this is not a tight busy loop on pause
-    while (rclcpp::ok() && no_stop_request && !clock_->sleep_until(message_ptr->time_stamp)) {
+    while (rclcpp::ok() && no_stop_request_ && !clock_->sleep_until(message_ptr->time_stamp)) {
       if (std::atomic_exchange(&cancel_wait_for_next_message_, false)) {
         break;
       }
     }
     std::lock_guard<std::mutex> lk(skip_message_in_main_play_loop_mutex_);
-    if (rclcpp::ok() && no_stop_request) {
+    if (rclcpp::ok() && no_stop_request_) {
       if (skip_message_in_main_play_loop_) {
         skip_message_in_main_play_loop_ = false;
         cancel_wait_for_next_message_ = false;
@@ -445,7 +446,7 @@ void Player::play_messages_from_queue()
   }
   // while we're in pause state, make sure we don't return
   // if we happen to be at the end of queue
-  while (is_paused() && rclcpp::ok() && no_stop_request) {
+  while (is_paused() && rclcpp::ok() && no_stop_request_) {
     clock_->sleep_until(clock_->now());
   }
 }

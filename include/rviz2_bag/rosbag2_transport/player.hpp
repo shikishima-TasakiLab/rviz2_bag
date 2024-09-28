@@ -168,7 +168,6 @@ private:
     std::function<void(const rclcpp::SerializedMessage &)> publish_func_;
   };
 
-  rclcpp::Node::SharedPtr nh_;
 
   bool is_ready_to_play_from_queue_{false};
   std::mutex ready_to_play_from_queue_mutex_;
@@ -177,7 +176,8 @@ private:
   std::unordered_map<std::string, std::shared_ptr<PlayerPublisher>> publishers_;
 
 private:
-  bool no_stop_request{true};
+  rclcpp::Node::SharedPtr nh_;
+  bool no_stop_request_{true};
   rosbag2_storage::SerializedBagMessageSharedPtr peek_next_message_from_queue();
   void load_storage_content();
   bool is_storage_completely_loaded() const;
