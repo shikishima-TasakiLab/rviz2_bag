@@ -274,33 +274,50 @@ namespace rviz2_bag
 
     ui_recorder_->ledit__output_dir->setText(str_dir);
 
+    ui_recorder_->list__topics->setEnabled(true);
+    ui_recorder_->check__use_sim_time->setEnabled(true);
     ui_recorder_->pbtn__record->setEnabled(true);
     ui_recorder_->pbtn__pause->setEnabled(false);
     ui_recorder_->pbtn__stop->setEnabled(false);
+    ui_recorder_->pbtn__select_all->setEnabled(true);
+    ui_recorder_->pbtn__deselect_all->setEnabled(true);
+    ui_recorder_->pbtn__topic_refresh->setEnabled(true);
   }
 
   void RViz2Bag_Recorder::pbtn__record__clicked()
   {
     ui_recorder_->list__topics->setEnabled(false);
+    ui_recorder_->check__use_sim_time->setEnabled(false);
     ui_recorder_->pbtn__record->setEnabled(false);
     ui_recorder_->pbtn__pause->setEnabled(true);
     ui_recorder_->pbtn__stop->setEnabled(true);
+    ui_recorder_->pbtn__select_all->setEnabled(false);
+    ui_recorder_->pbtn__deselect_all->setEnabled(false);
+    ui_recorder_->pbtn__topic_refresh->setEnabled(false);
   }
 
   void RViz2Bag_Recorder::pbtn__pause__clicked()
   {
     ui_recorder_->list__topics->setEnabled(false);
+    ui_recorder_->check__use_sim_time->setEnabled(false);
     ui_recorder_->pbtn__record->setEnabled(true);
     ui_recorder_->pbtn__pause->setEnabled(false);
     ui_recorder_->pbtn__stop->setEnabled(true);
+    ui_recorder_->pbtn__select_all->setEnabled(false);
+    ui_recorder_->pbtn__deselect_all->setEnabled(false);
+    ui_recorder_->pbtn__topic_refresh->setEnabled(false);
   }
 
   void RViz2Bag_Recorder::pbtn__stop__clicked()
   {
     ui_recorder_->list__topics->setEnabled(true);
+    ui_recorder_->check__use_sim_time->setEnabled(true);
     ui_recorder_->pbtn__record->setEnabled(true);
     ui_recorder_->pbtn__pause->setEnabled(false);
     ui_recorder_->pbtn__stop->setEnabled(false);
+    ui_recorder_->pbtn__select_all->setEnabled(true);
+    ui_recorder_->pbtn__deselect_all->setEnabled(true);
+    ui_recorder_->pbtn__topic_refresh->setEnabled(true);
   }
 
   void RViz2Bag_Recorder::pbtn__select_all__clicked()

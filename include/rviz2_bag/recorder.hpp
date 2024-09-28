@@ -23,6 +23,8 @@
 #include <QtWidgets/QSpinBox>
 #include <QtWidgets/QTreeWidgetItem>
 
+#include "rviz2_bag/rosbag2_transport/recorder.hpp"
+
 #include "ui_recorder.h"
 #endif
 
@@ -60,8 +62,9 @@ namespace rviz2_bag
     protected:
         rclcpp::Node::SharedPtr nh_;
         Ui::Recorder *ui_recorder_;
-
+        
         std::unique_ptr<rosbag2_transport::RecordOptions> record_options_;
+        std::shared_ptr<rosbag2_transport::Recorder> recorder_;
 
         QTreeWidgetItem *tree_setting__storage_;
         QComboBox *combo_setting__storage_;
