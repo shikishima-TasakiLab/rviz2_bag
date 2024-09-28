@@ -27,6 +27,7 @@ pluginlib_export_plugin_description_file(rviz_common plugins_description.xml)
 
 qt5_wrap_ui(UIC_FILES
   src/ui/player.ui
+  src/ui/recorder.ui
 )
 
 add_library(rviz2_bag SHARED
