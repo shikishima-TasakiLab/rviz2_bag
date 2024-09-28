@@ -25,19 +25,12 @@
 #include <utility>
 #include <vector>
 
-#include "keyboard_handler/keyboard_handler.hpp"
-
 #include <rclcpp/node.hpp>
 #include <rclcpp/qos.hpp>
-
 #include <rosbag2_cpp/writer.hpp>
-
 #include <rosbag2_interfaces/srv/snapshot.hpp>
-
 #include <rosbag2_interfaces/msg/write_split_event.hpp>
-
 #include <rosbag2_storage/topic_metadata.hpp>
-
 #include <rosbag2_transport/record_options.hpp>
 #include <rosbag2_transport/visibility_control.hpp>
 
@@ -107,8 +100,6 @@ public:
   ROSBAG2_TRANSPORT_PUBLIC
   bool is_paused();
 
-  inline constexpr static const auto kPauseResumeToggleKey = KeyboardHandler::KeyCode::SPACE;
-
 protected:
   ROSBAG2_TRANSPORT_EXPORT
   std::unordered_map<std::string, std::string> get_requested_or_available_topics();
@@ -157,12 +148,6 @@ private:
   std::unordered_set<std::string> topic_unknown_types_;
   rclcpp::Service<rosbag2_interfaces::srv::Snapshot>::SharedPtr srv_snapshot_;
   std::atomic<bool> paused_{false};
-
-  // Keyboard handler
-  std::shared_ptr<KeyboardHandler> keyboard_handler_;
-  // Toogle paused key callback handle
-  KeyboardHandler::callback_handle_t toggle_paused_key_callback_handle_ =
-    KeyboardHandler::invalid_handle;
 
   // Variables for event publishing
   rclcpp::Publisher<rosbag2_interfaces::msg::WriteSplitEvent>::SharedPtr split_event_pub_;

@@ -61,17 +61,6 @@ Recorder::Recorder(
             "The /clock topic needs to be discovered to record with sim time.");
   }
 
-  std::string key_str = enum_key_code_to_str(Recorder::kPauseResumeToggleKey);
-  toggle_paused_key_callback_handle_ =
-    keyboard_handler_->add_key_press_callback(
-    [this](KeyboardHandler::KeyCode /*key_code*/,
-    KeyboardHandler::KeyModifiers /*key_modifiers*/) {this->toggle_paused();},
-    Recorder::kPauseResumeToggleKey);
-  // show instructions
-  RCLCPP_INFO_STREAM(
-    nh_->get_logger(),
-    "Press " << key_str << " for pausing/resuming");
-
   for (auto & topic : record_options_.topics) {
     topic = rclcpp::expand_topic_or_service_name(topic, nh_->get_name(), nh_->get_namespace(), false);
   }
@@ -79,7 +68,6 @@ Recorder::Recorder(
 
 Recorder::~Recorder()
 {
-  keyboard_handler_->delete_key_press_callback(toggle_paused_key_callback_handle_);
   stop();
 }
 
@@ -170,8 +158,7 @@ void Recorder::record()
 
   if (record_options_.start_paused) {
     RCLCPP_INFO(
-      nh_->get_logger(), "Waiting for recording: Press %s to start.",
-      enum_key_code_to_str(Recorder::kPauseResumeToggleKey).c_str());
+      nh_->get_logger(), "Waiting for recording.");
   } else {
     RCLCPP_INFO(nh_->get_logger(), "Recording...");
   }
