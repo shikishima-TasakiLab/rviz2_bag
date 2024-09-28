@@ -9,12 +9,12 @@
 #include <rviz_common/config.hpp>
 #include <rviz_common/display_context.hpp>
 #include <rosbag2_transport/play_options.hpp>
-#include <rosbag2_transport/player.hpp>
-#include "rosbag2_transport/reader_writer_factory.hpp"
+#include <rosbag2_transport/reader_writer_factory.hpp>
 #include <rosbag2_storage/metadata_io.hpp>
 #include <rosbag2_storage/storage_options.hpp>
 #include <QtWidgets/QFileDialog>
 
+#include "rviz2_bag/rosbag2_transport/player.hpp"
 #include "ui_player.h"
 #endif
 
@@ -54,7 +54,9 @@ namespace rviz2_bag
         Ui::Player *ui_player_;
 
         std::unique_ptr<rosbag2_storage::StorageOptions> storage_options_;
-        std::unique_ptr<rosbag2_transport::Player> bag_player_;
+        std::shared_ptr<rosbag2_transport::Player> bag_player_;
+        std::unique_ptr<std::thread> spin_thread_;
+        std::unique_ptr<rclcpp::executors::SingleThreadedExecutor> exec_;
 
         void list_check_all(Qt::CheckState state);
     };
