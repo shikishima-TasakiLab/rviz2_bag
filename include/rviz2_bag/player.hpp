@@ -10,6 +10,7 @@
 #include <rviz_common/display_context.hpp>
 #include <rosbag2_transport/play_options.hpp>
 #include <rosbag2_transport/player.hpp>
+#include "rosbag2_transport/reader_writer_factory.hpp"
 #include <rosbag2_storage/metadata_io.hpp>
 #include <rosbag2_storage/storage_options.hpp>
 #include <QtWidgets/QFileDialog>
@@ -52,8 +53,8 @@ namespace rviz2_bag
         rclcpp::Node::SharedPtr nh_;
         Ui::Player *ui_player_;
 
-        std::shared_ptr<rosbag2_storage::StorageOptions> storage_options_;
-        std::shared_ptr<rosbag2_transport::Player> bag_player_;
+        std::unique_ptr<rosbag2_storage::StorageOptions> storage_options_;
+        std::unique_ptr<rosbag2_transport::Player> bag_player_;
 
         void list_check_all(Qt::CheckState state);
     };

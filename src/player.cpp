@@ -84,7 +84,7 @@ namespace rviz2_bag
     QString dir = QFileDialog::getExistingDirectory(this, tr("Open ROSBAG"), "~", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     ui_player_->ledit__rosbag_dir->setText(dir);
 
-    storage_options_ = std::make_shared<rosbag2_storage::StorageOptions>();
+    storage_options_ = std::make_unique<rosbag2_storage::StorageOptions>();
     storage_options_->uri = dir.toLocal8Bit().constData();
     storage_options_->storage_id = "";
     storage_options_->storage_config_uri = "";
@@ -153,10 +153,41 @@ namespace rviz2_bag
 
   void RViz2Bag_Player::pbtn__rosbag_play__callback()
   {
+    if (bag_player_ == nullptr) {
+      rosbag2_transport::PlayOptions play_options;
+
+      play_options.read_ahead_queue_size = 1000;
+      play_options.node_prefix = "";
+      play_options.rate = ui_player_->dspin__rosbag_rate->value();
+      play_options.topics_to_filter = {};
+      play_options.topic_qos_profile_overrides = {};
+      play_options.loop = (ui_player_->check__rosbag_loop->checkState() == Qt::Checked);
+      play_options.topic_remapping_options = {};
+      play_options.clock_publish_frequency = ui_player_->dspin__rosbag_clock->value();
+      play_options.delay = rclcpp::Duration(0, 0);
+      play_options.start_paused = false;
+      play_options.start_offset = 0;
+      play_options.disable_keyboard_controls = true;
+      play_options.wait_acked_timeout = -1;
+      play_options.disable_loan_message = false;
+
+      auto reader = rosbag2_transport::ReaderWriterFactory::make_reader(*storage_options_);
+      bag_player_ = std::make_unique<rosbag2_transport::Player>(std::move(reader), *storage_options_, play_options);
+
+    }
+    else {
+
+    }
   }
 
   void RViz2Bag_Player::pbtn__rosbag_stop__callback()
   {
+    if (bag_player_ == nullptr) {
+
+    }
+    else {
+      
+    }
   }
 
   void RViz2Bag_Player::pbtn__rosbag_pause__callback()
