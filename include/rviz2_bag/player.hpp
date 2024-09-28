@@ -45,14 +45,14 @@ namespace rviz2_bag
         void dspin__rosbag_elapsed_time__editingFinished();
         void hsld__rosbag_elapsed_time__valueChanged(int value);
         void hsld__rosbag_elapsed_time__sliderReleased();
-        void pbtn__rosbag_open__callback();
-        void pbtn__select_all__callback();
-        void pbtn__deselect_all__callback();
-        void pbtn__rosbag_play__callback();
-        void pbtn__rosbag_stop__callback();
-        void pbtn__rosbag_pause__callback();
-        void pbtn__backward__callback();
-        void pbtn__play_next__callback();
+        void pbtn__rosbag_open__clicked();
+        void pbtn__select_all__clicked();
+        void pbtn__deselect_all__clicked();
+        void pbtn__rosbag_play__clicked();
+        void pbtn__rosbag_stop__clicked();
+        void pbtn__rosbag_pause__clicked();
+        void pbtn__backward__clicked();
+        void pbtn__play_next__clicked();
         void update_elapsed_time__callback(rcutils_time_point_value_t time_point);
 
     protected:

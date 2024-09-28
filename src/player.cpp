@@ -12,7 +12,7 @@ namespace rviz2_bag
         ui_player_->pbtn__rosbag_open,
         &QPushButton::clicked,
         this,
-        &RViz2Bag_Player::pbtn__rosbag_open__callback);
+        &RViz2Bag_Player::pbtn__rosbag_open__clicked);
     connect(
         ui_player_->dspin__rosbag_rate,
         static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
@@ -42,37 +42,37 @@ namespace rviz2_bag
         ui_player_->pbtn__select_all,
         &QPushButton::clicked,
         this,
-        &RViz2Bag_Player::pbtn__select_all__callback);
+        &RViz2Bag_Player::pbtn__select_all__clicked);
     connect(
         ui_player_->pbtn__deselect_all,
         &QPushButton::clicked,
         this,
-        &RViz2Bag_Player::pbtn__deselect_all__callback);
+        &RViz2Bag_Player::pbtn__deselect_all__clicked);
     connect(
         ui_player_->pbtn__rosbag_play,
         &QPushButton::clicked,
         this,
-        &RViz2Bag_Player::pbtn__rosbag_play__callback);
+        &RViz2Bag_Player::pbtn__rosbag_play__clicked);
     connect(
         ui_player_->pbtn__rosbag_stop,
         &QPushButton::clicked,
         this,
-        &RViz2Bag_Player::pbtn__rosbag_stop__callback);
+        &RViz2Bag_Player::pbtn__rosbag_stop__clicked);
     connect(
         ui_player_->pbtn__rosbag_pause,
         &QPushButton::clicked,
         this,
-        &RViz2Bag_Player::pbtn__rosbag_pause__callback);
+        &RViz2Bag_Player::pbtn__rosbag_pause__clicked);
     connect(
         ui_player_->pbtn__backward,
         &QPushButton::clicked,
         this,
-        &RViz2Bag_Player::pbtn__backward__callback);
+        &RViz2Bag_Player::pbtn__backward__clicked);
     connect(
         ui_player_->pbtn__play_next,
         &QPushButton::clicked,
         this,
-        &RViz2Bag_Player::pbtn__play_next__callback);
+        &RViz2Bag_Player::pbtn__play_next__clicked);
   }
 
   RViz2Bag_Player::~RViz2Bag_Player()
@@ -166,7 +166,7 @@ namespace rviz2_bag
     }
   }
 
-  void RViz2Bag_Player::pbtn__rosbag_open__callback()
+  void RViz2Bag_Player::pbtn__rosbag_open__clicked()
   {
     // Open ROSBAG dir
     QString dir = QFileDialog::getExistingDirectory(this, tr("Open ROSBAG"), "~", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
@@ -230,12 +230,12 @@ namespace rviz2_bag
     ui_player_->pbtn__deselect_all->setEnabled(true);
   }
 
-  void RViz2Bag_Player::pbtn__select_all__callback()
+  void RViz2Bag_Player::pbtn__select_all__clicked()
   {
     list_check_all(Qt::Checked);
   }
 
-  void RViz2Bag_Player::pbtn__deselect_all__callback()
+  void RViz2Bag_Player::pbtn__deselect_all__clicked()
   {
     list_check_all(Qt::Unchecked);
   }
@@ -296,7 +296,7 @@ namespace rviz2_bag
         bag_player_.get(),
         &rosbag2_transport::Player::stopped,
         this,
-        &RViz2Bag_Player::pbtn__rosbag_stop__callback);
+        &RViz2Bag_Player::pbtn__rosbag_stop__clicked);
 
     connect(
         bag_player_.get(),
@@ -325,7 +325,7 @@ namespace rviz2_bag
     }
   }
 
-  void RViz2Bag_Player::pbtn__rosbag_play__callback()
+  void RViz2Bag_Player::pbtn__rosbag_play__clicked()
   {
     if (bag_player_ == nullptr)
     {
@@ -353,7 +353,7 @@ namespace rviz2_bag
     ui_player_->pbtn__deselect_all->setEnabled(false);
   }
 
-  void RViz2Bag_Player::pbtn__rosbag_stop__callback()
+  void RViz2Bag_Player::pbtn__rosbag_stop__clicked()
   {
     stop();
 
@@ -373,7 +373,7 @@ namespace rviz2_bag
     ui_player_->pbtn__deselect_all->setEnabled(true);
   }
 
-  void RViz2Bag_Player::pbtn__rosbag_pause__callback()
+  void RViz2Bag_Player::pbtn__rosbag_pause__clicked()
   {
     if (bag_player_ == nullptr)
     {
@@ -396,7 +396,7 @@ namespace rviz2_bag
     }
   }
 
-  void RViz2Bag_Player::pbtn__backward__callback()
+  void RViz2Bag_Player::pbtn__backward__clicked()
   {
     if (bag_player_ == nullptr)
     {
@@ -414,7 +414,7 @@ namespace rviz2_bag
     }
   }
 
-  void RViz2Bag_Player::pbtn__play_next__callback()
+  void RViz2Bag_Player::pbtn__play_next__clicked()
   {
     if (bag_player_ == nullptr)
     {
