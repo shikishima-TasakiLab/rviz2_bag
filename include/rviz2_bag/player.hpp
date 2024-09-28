@@ -40,6 +40,10 @@ namespace rviz2_bag
         void save(rviz_common::Config config) const override;
 
     protected Q_SLOTS:
+        void dspin__rosbag_elapsed_time__valueChanged(double value);
+        void dspin__rosbag_elapsed_time__editingFinished();
+        void hsld__rosbag_elapsed_time__valueChanged(int value);
+        void hsld__rosbag_elapsed_time__sliderReleased();
         void pbtn__rosbag_open__callback();
         void pbtn__select_all__callback();
         void pbtn__deselect_all__callback();
@@ -48,12 +52,15 @@ namespace rviz2_bag
         void pbtn__rosbag_pause__callback();
         void pbtn__backward__callback();
         void pbtn__play_next__callback();
+        void update_elapsed_time__callback(rcutils_time_point_value_t time_point);
 
     protected:
         rclcpp::Node::SharedPtr nh_;
         Ui::Player *ui_player_;
 
         std::unique_ptr<rosbag2_storage::StorageOptions> storage_options_;
+        std::unique_ptr<rosbag2_storage::BagMetadata> metadata_;
+
         std::shared_ptr<rosbag2_transport::Player> bag_player_;
         std::unique_ptr<std::thread> spin_thread_;
         std::unique_ptr<rclcpp::executors::SingleThreadedExecutor> exec_;
