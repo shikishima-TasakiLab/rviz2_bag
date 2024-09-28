@@ -1,6 +1,7 @@
 from launch import LaunchDescription
 from ament_index_python.packages import get_package_share_directory
 from launch_ros.actions import Node, SetParameter
+from launch.actions import Shutdown
 import os.path
 
 def generate_launch_description():
@@ -20,6 +21,7 @@ def generate_launch_description():
             namespace='',
             executable='rviz2',
             name='rviz2',
-            arguments=['-d' + os.path.join(get_package_share_directory('rviz2_bag'), 'test', 'test.rviz')]
+            arguments=['-d' + os.path.join(get_package_share_directory('rviz2_bag'), 'test', 'test.rviz')],
+            on_exit=Shutdown(),
         )
     ])
