@@ -172,16 +172,27 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pbtn__topic_update">
+          <widget class="QPushButton" name="pbtn__topic_refresh">
            <property name="text">
-            <string>Update</string>
+            <string>Refresh</string>
            </property>
           </widget>
          </item>
         </layout>
        </item>
        <item>
-        <widget class="QListWidget" name="list__topics"/>
+        <widget class="QTreeWidget" name="list__topics">
+         <column>
+          <property name="text">
+           <string>topic</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>type</string>
+          </property>
+         </column>
+        </widget>
        </item>
       </layout>
      </widget>

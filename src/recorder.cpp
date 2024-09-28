@@ -83,7 +83,7 @@ namespace rviz2_bag
       spin_setting__polling_interval_->setValue(100);
       spin_setting__polling_interval_->setSingleStep(10);
       spin_setting__polling_interval_->setSuffix(QString(" ms"));
-      spin_setting__polling_interval_->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+      spin_setting__polling_interval_->setAlignment(Qt::AlignRight | Qt::AlignTrailing | Qt::AlignVCenter);
       ui_recorder_->tree__setting->setItemWidget(tree_setting__polling_interval_, 1, spin_setting__polling_interval_);
     }
 
@@ -99,7 +99,7 @@ namespace rviz2_bag
       spin_setting__max_bag_size_->setValue(0);
       spin_setting__max_bag_size_->setSingleStep(1);
       spin_setting__max_bag_size_->setSuffix(QString(" MB"));
-      spin_setting__max_bag_size_->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+      spin_setting__max_bag_size_->setAlignment(Qt::AlignRight | Qt::AlignTrailing | Qt::AlignVCenter);
       ui_recorder_->tree__setting->setItemWidget(tree_setting__max_bag_size_, 1, spin_setting__max_bag_size_);
     }
 
@@ -115,7 +115,7 @@ namespace rviz2_bag
       spin_setting__max_bag_duration_->setValue(0);
       spin_setting__max_bag_duration_->setSingleStep(10);
       spin_setting__max_bag_duration_->setSuffix(QString(" s"));
-      spin_setting__max_bag_duration_->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+      spin_setting__max_bag_duration_->setAlignment(Qt::AlignRight | Qt::AlignTrailing | Qt::AlignVCenter);
       ui_recorder_->tree__setting->setItemWidget(tree_setting__max_bag_duration_, 1, spin_setting__max_bag_duration_);
     }
 
@@ -131,7 +131,7 @@ namespace rviz2_bag
       spin_setting__max_cache_size_->setValue(1024);
       spin_setting__max_cache_size_->setSingleStep(128);
       spin_setting__max_cache_size_->setSuffix(QString(" kB"));
-      spin_setting__max_cache_size_->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+      spin_setting__max_cache_size_->setAlignment(Qt::AlignRight | Qt::AlignTrailing | Qt::AlignVCenter);
       ui_recorder_->tree__setting->setItemWidget(tree_setting__max_cache_size_, 1, spin_setting__max_cache_size_);
     }
 
@@ -158,7 +158,8 @@ namespace rviz2_bag
 
       combo_setting__compression_format_ = new QComboBox();
       combo_setting__compression_format_->addItem(QString(""));
-      for (std::string compression_format : compression_format_choices) {
+      for (std::string compression_format : compression_format_choices)
+      {
         combo_setting__compression_format_->addItem(QString(compression_format.c_str()));
       }
       ui_recorder_->tree__setting->setItemWidget(tree_setting__compression_format_, 1, combo_setting__compression_format_);
@@ -175,7 +176,7 @@ namespace rviz2_bag
       spin_setting__compression_queue_size_->setMaximum(1024);
       spin_setting__compression_queue_size_->setValue(1);
       spin_setting__compression_queue_size_->setSingleStep(1);
-      spin_setting__compression_queue_size_->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+      spin_setting__compression_queue_size_->setAlignment(Qt::AlignRight | Qt::AlignTrailing | Qt::AlignVCenter);
       ui_recorder_->tree__setting->setItemWidget(tree_setting__compression_queue_size_, 1, spin_setting__compression_queue_size_);
     }
 
@@ -190,7 +191,7 @@ namespace rviz2_bag
       spin_setting__compression_threads_->setMaximum(256);
       spin_setting__compression_threads_->setValue(0);
       spin_setting__compression_threads_->setSingleStep(1);
-      spin_setting__compression_threads_->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+      spin_setting__compression_threads_->setAlignment(Qt::AlignRight | Qt::AlignTrailing | Qt::AlignVCenter);
       ui_recorder_->tree__setting->setItemWidget(tree_setting__compression_threads_, 1, spin_setting__compression_threads_);
     }
 
@@ -209,6 +210,42 @@ namespace rviz2_bag
       combo_setting__log_level_->setCurrentIndex(1);
       ui_recorder_->tree__setting->setItemWidget(tree_setting__log_level_, 1, combo_setting__log_level_);
     }
+
+    connect(
+        ui_recorder_->pbtn__output_dir,
+        &QPushButton::clicked,
+        this,
+        &RViz2Bag_Recorder::pbtn__output_dir__clicked);
+    connect(
+        ui_recorder_->pbtn__record,
+        &QPushButton::clicked,
+        this,
+        &RViz2Bag_Recorder::pbtn__record__clicked);
+    connect(
+        ui_recorder_->pbtn__pause,
+        &QPushButton::clicked,
+        this,
+        &RViz2Bag_Recorder::pbtn__pause__clicked);
+    connect(
+        ui_recorder_->pbtn__stop,
+        &QPushButton::clicked,
+        this,
+        &RViz2Bag_Recorder::pbtn__stop__clicked);
+    connect(
+        ui_recorder_->pbtn__select_all,
+        &QPushButton::clicked,
+        this,
+        &RViz2Bag_Recorder::pbtn__select_all__clicked);
+    connect(
+        ui_recorder_->pbtn__deselect_all,
+        &QPushButton::clicked,
+        this,
+        &RViz2Bag_Recorder::pbtn__deselect_all__clicked);
+    connect(
+        ui_recorder_->pbtn__topic_refresh,
+        &QPushButton::clicked,
+        this,
+        &RViz2Bag_Recorder::pbtn__topic_refresh__clicked);
   }
 
   RViz2Bag_Recorder::~RViz2Bag_Recorder() {}
@@ -226,6 +263,89 @@ namespace rviz2_bag
   void RViz2Bag_Recorder::load(const rviz_common::Config &config)
   {
     rviz_common::Panel::load(config);
+  }
+
+  void RViz2Bag_Recorder::pbtn__output_dir__clicked()
+  {
+    QString str_dir = QFileDialog::getExistingDirectory(this, tr("Open ROSBAG"), QDir::homePath(), QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    QDir dir(str_dir);
+    if (dir.exists() == false)
+      return;
+
+    ui_recorder_->ledit__output_dir->setText(str_dir);
+
+    ui_recorder_->pbtn__record->setEnabled(true);
+    ui_recorder_->pbtn__pause->setEnabled(false);
+    ui_recorder_->pbtn__stop->setEnabled(false);
+  }
+
+  void RViz2Bag_Recorder::pbtn__record__clicked()
+  {
+    ui_recorder_->list__topics->setEnabled(false);
+    ui_recorder_->pbtn__record->setEnabled(false);
+    ui_recorder_->pbtn__pause->setEnabled(true);
+    ui_recorder_->pbtn__stop->setEnabled(true);
+  }
+
+  void RViz2Bag_Recorder::pbtn__pause__clicked()
+  {
+    ui_recorder_->list__topics->setEnabled(false);
+    ui_recorder_->pbtn__record->setEnabled(true);
+    ui_recorder_->pbtn__pause->setEnabled(false);
+    ui_recorder_->pbtn__stop->setEnabled(true);
+  }
+
+  void RViz2Bag_Recorder::pbtn__stop__clicked()
+  {
+    ui_recorder_->list__topics->setEnabled(true);
+    ui_recorder_->pbtn__record->setEnabled(true);
+    ui_recorder_->pbtn__pause->setEnabled(false);
+    ui_recorder_->pbtn__stop->setEnabled(false);
+  }
+
+  void RViz2Bag_Recorder::pbtn__select_all__clicked()
+  {
+    list_check_all(Qt::Checked);
+  }
+
+  void RViz2Bag_Recorder::pbtn__deselect_all__clicked()
+  {
+    list_check_all(Qt::Unchecked);
+  }
+
+  void RViz2Bag_Recorder::pbtn__topic_refresh__clicked()
+  {
+    int list_count = ui_recorder_->list__topics->topLevelItemCount();
+    for (int i = 0; i < list_count; i++)
+    {
+      QTreeWidgetItem *item = ui_recorder_->list__topics->takeTopLevelItem(0);
+      delete item;
+    }
+
+    std::map<std::string, std::vector<std::string>> topic_infos = nh_->get_topic_names_and_types();
+    for (const auto &topic_itr : topic_infos)
+    {
+      std::string topic_name = topic_itr.first;
+      std::vector<std::string> topic_types = topic_itr.second;
+      for (const auto &topic_type : topic_types)
+      {
+        QTreeWidgetItem *item = new QTreeWidgetItem();
+        item->setText(0, QString(topic_name.c_str()));
+        item->setText(1, QString(topic_type.c_str()));
+        item->setCheckState(0, Qt::Checked);
+        ui_recorder_->list__topics->addTopLevelItem(item);
+      }
+    }
+  }
+
+  void RViz2Bag_Recorder::list_check_all(Qt::CheckState state)
+  {
+    int list_count = ui_recorder_->list__topics->topLevelItemCount();
+    for (int i = 0; i < list_count; i++)
+    {
+      QTreeWidgetItem *item = ui_recorder_->list__topics->topLevelItem(i);
+      item->setCheckState(0, state);
+    }
   }
 
 } // namespace rviz2_bag
