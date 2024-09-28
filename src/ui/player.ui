@@ -2,6 +2,14 @@
 <ui version="4.0">
  <class>Player</class>
  <widget class="QWidget" name="Player">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>323</width>
+    <height>363</height>
+   </rect>
+  </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
@@ -20,6 +28,12 @@
    </property>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <property name="leftMargin">
+      <number>2</number>
+     </property>
+     <property name="rightMargin">
+      <number>2</number>
+     </property>
      <item>
       <widget class="QPushButton" name="pbtn__rosbag_open">
        <property name="sizePolicy">
@@ -56,6 +70,12 @@
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <property name="leftMargin">
+      <number>2</number>
+     </property>
+     <property name="rightMargin">
+      <number>2</number>
+     </property>
      <item>
       <layout class="QHBoxLayout" name="hl__rosbag_clock">
        <item>
@@ -137,6 +157,12 @@
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_4">
+     <property name="leftMargin">
+      <number>2</number>
+     </property>
+     <property name="rightMargin">
+      <number>2</number>
+     </property>
      <item>
       <widget class="QPushButton" name="pbtn__rosbag_play">
        <property name="enabled">
@@ -211,6 +237,12 @@
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_5">
+     <property name="leftMargin">
+      <number>2</number>
+     </property>
+     <property name="rightMargin">
+      <number>2</number>
+     </property>
      <item>
       <widget class="QDoubleSpinBox" name="dspin__rosbag_elapsed_time">
        <property name="enabled">
@@ -244,6 +276,12 @@
    </item>
    <item>
     <layout class="QHBoxLayout" name="hl__topic_select">
+     <property name="leftMargin">
+      <number>2</number>
+     </property>
+     <property name="rightMargin">
+      <number>2</number>
+     </property>
      <item>
       <widget class="QPushButton" name="pbtn__select_all">
        <property name="enabled">
