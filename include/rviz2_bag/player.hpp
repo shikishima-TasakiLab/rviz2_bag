@@ -59,6 +59,8 @@ namespace rviz2_bag
         std::unique_ptr<rclcpp::executors::SingleThreadedExecutor> exec_;
 
         void list_check_all(Qt::CheckState state);
+        void play();
+        void stop();
     };
 
 } // namespace rviz2_bag

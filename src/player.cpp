@@ -14,15 +14,15 @@ namespace rviz2_bag
         this,
         &RViz2Bag_Player::pbtn__rosbag_open__callback);
     connect(
-        ui_player_->spin__rosbag_starttime,
-        static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
-        ui_player_->hsld__rosbag_starttime,
+        ui_player_->dspin__rosbag_elapsed_time,
+        static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+        ui_player_->hsld__rosbag_elapsed_time,
         &QSlider::setValue);
     connect(
-        ui_player_->hsld__rosbag_starttime,
+        ui_player_->hsld__rosbag_elapsed_time,
         &QSlider::valueChanged,
-        ui_player_->spin__rosbag_starttime,
-        &QSpinBox::setValue);
+        ui_player_->dspin__rosbag_elapsed_time,
+        &QDoubleSpinBox::setValue);
     connect(
         ui_player_->pbtn__select_all,
         &QPushButton::clicked,
@@ -61,7 +61,10 @@ namespace rviz2_bag
         &RViz2Bag_Player::pbtn__play_next__callback);
   }
 
-  RViz2Bag_Player::~RViz2Bag_Player() {}
+  RViz2Bag_Player::~RViz2Bag_Player()
+  {
+    stop();
+  }
 
   void RViz2Bag_Player::onInitialize()
   {
@@ -99,12 +102,12 @@ namespace rviz2_bag
 
     auto metadata = metadata_io.read_metadata(storage_options_->uri);
 
-    // Set starttime
-    int starttime_max = metadata.duration.count() / 1000000000;
-    ui_player_->hsld__rosbag_starttime->setValue(0);
-    ui_player_->spin__rosbag_starttime->setValue(0);
-    ui_player_->hsld__rosbag_starttime->setMaximum(starttime_max);
-    ui_player_->spin__rosbag_starttime->setMaximum(starttime_max);
+    // Set elapsed_time
+    int elapsed_time_max = metadata.duration.count() / 1000000000;
+    ui_player_->hsld__rosbag_elapsed_time->setValue(0);
+    ui_player_->dspin__rosbag_elapsed_time->setValue(0);
+    ui_player_->hsld__rosbag_elapsed_time->setMaximum(elapsed_time_max);
+    ui_player_->dspin__rosbag_elapsed_time->setMaximum(elapsed_time_max);
 
     // Reset Topic List
     int list_count = ui_player_->list__rosbag_topic->count();
@@ -125,10 +128,21 @@ namespace rviz2_bag
     }
 
     // Enable UI
-    ui_player_->hsld__rosbag_starttime->setEnabled(true);
-    ui_player_->spin__rosbag_starttime->setEnabled(true);
+    ui_player_->hsld__rosbag_elapsed_time->setEnabled(true);
+    ui_player_->dspin__rosbag_elapsed_time->setEnabled(true);
     ui_player_->list__rosbag_topic->setEnabled(true);
+
+    ui_player_->pbtn__rosbag_open->setEnabled(true);
+    ui_player_->dspin__rosbag_clock->setEnabled(true);
+    ui_player_->dspin__rosbag_rate->setEnabled(true);
+    ui_player_->check__rosbag_loop->setEnabled(true);
     ui_player_->pbtn__rosbag_play->setEnabled(true);
+    ui_player_->pbtn__rosbag_pause->setEnabled(false);
+    ui_player_->pbtn__rosbag_stop->setEnabled(false);
+    ui_player_->pbtn__backward->setEnabled(true);
+    ui_player_->pbtn__play_next->setEnabled(false);
+    ui_player_->pbtn__select_all->setEnabled(true);
+    ui_player_->pbtn__deselect_all->setEnabled(true);
   }
 
   void RViz2Bag_Player::pbtn__select_all__callback()
@@ -151,55 +165,144 @@ namespace rviz2_bag
     }
   }
 
+  void RViz2Bag_Player::play()
+  {
+    rosbag2_transport::PlayOptions play_options;
+
+    play_options.read_ahead_queue_size = 1000;
+    play_options.node_prefix = "";
+    play_options.rate = ui_player_->dspin__rosbag_rate->value();
+    play_options.topics_to_filter = {};
+    play_options.topic_qos_profile_overrides = {};
+    play_options.loop = (ui_player_->check__rosbag_loop->checkState() == Qt::Checked);
+    play_options.topic_remapping_options = {};
+    play_options.clock_publish_frequency = ui_player_->dspin__rosbag_clock->value();
+    play_options.delay = rclcpp::Duration(0, 0);
+    play_options.start_paused = false;
+    play_options.start_offset = 0;
+    play_options.disable_keyboard_controls = true;
+    play_options.wait_acked_timeout = -1;
+    play_options.disable_loan_message = false;
+
+    auto reader = rosbag2_transport::ReaderWriterFactory::make_reader(*storage_options_);
+    bag_player_ = std::make_shared<rosbag2_transport::Player>(
+        std::move(reader),
+        *storage_options_,
+        play_options,
+        getDisplayContext()->getRosNodeAbstraction().lock()->get_raw_node());
+
+    connect(
+        bag_player_.get(),
+        &rosbag2_transport::Player::stopped,
+        this,
+        &RViz2Bag_Player::pbtn__rosbag_stop__callback);
+
+    spin_thread_ = std::make_unique<std::thread>([this]()
+                                                 { this->bag_player_->play(); });
+  }
+
+  void RViz2Bag_Player::stop()
+  {
+    if (bag_player_ == nullptr)
+    {
+    }
+    else
+    {
+      bag_player_->stop();
+      spin_thread_->join();
+
+      bag_player_.reset();
+      spin_thread_.reset();
+    }
+  }
+
   void RViz2Bag_Player::pbtn__rosbag_play__callback()
   {
-    if (bag_player_ == nullptr) {
-      rosbag2_transport::PlayOptions play_options;
-
-      play_options.read_ahead_queue_size = 1000;
-      play_options.node_prefix = "";
-      play_options.rate = ui_player_->dspin__rosbag_rate->value();
-      play_options.topics_to_filter = {};
-      play_options.topic_qos_profile_overrides = {};
-      play_options.loop = (ui_player_->check__rosbag_loop->checkState() == Qt::Checked);
-      play_options.topic_remapping_options = {};
-      play_options.clock_publish_frequency = ui_player_->dspin__rosbag_clock->value();
-      play_options.delay = rclcpp::Duration(0, 0);
-      play_options.start_paused = false;
-      play_options.start_offset = 0;
-      play_options.disable_keyboard_controls = true;
-      play_options.wait_acked_timeout = -1;
-      play_options.disable_loan_message = false;
-
-      auto reader = rosbag2_transport::ReaderWriterFactory::make_reader(*storage_options_);
-      bag_player_ = std::make_unique<rosbag2_transport::Player>(std::move(reader), *storage_options_, play_options);
-
+    if (bag_player_ == nullptr)
+    {
+      play();
     }
-    else {
-
+    else
+    {
+      bag_player_->resume();
     }
+
+    ui_player_->pbtn__rosbag_open->setEnabled(false);
+    ui_player_->dspin__rosbag_clock->setEnabled(false);
+    ui_player_->dspin__rosbag_rate->setEnabled(true);
+    ui_player_->check__rosbag_loop->setEnabled(false);
+    ui_player_->pbtn__rosbag_play->setEnabled(false);
+    ui_player_->pbtn__rosbag_pause->setEnabled(true);
+    ui_player_->pbtn__rosbag_stop->setEnabled(true);
+    ui_player_->pbtn__backward->setEnabled(true);
+    ui_player_->pbtn__play_next->setEnabled(false);
+    ui_player_->pbtn__select_all->setEnabled(false);
+    ui_player_->pbtn__deselect_all->setEnabled(false);
   }
 
   void RViz2Bag_Player::pbtn__rosbag_stop__callback()
   {
-    if (bag_player_ == nullptr) {
+    stop();
 
-    }
-    else {
-      
-    }
+    ui_player_->dspin__rosbag_elapsed_time->setValue(0.0);
+    ui_player_->hsld__rosbag_elapsed_time->setValue(0);
+
+    ui_player_->pbtn__rosbag_open->setEnabled(true);
+    ui_player_->dspin__rosbag_clock->setEnabled(true);
+    ui_player_->dspin__rosbag_rate->setEnabled(true);
+    ui_player_->check__rosbag_loop->setEnabled(true);
+    ui_player_->pbtn__rosbag_play->setEnabled(true);
+    ui_player_->pbtn__rosbag_pause->setEnabled(false);
+    ui_player_->pbtn__rosbag_stop->setEnabled(false);
+    ui_player_->pbtn__backward->setEnabled(true);
+    ui_player_->pbtn__play_next->setEnabled(false);
+    ui_player_->pbtn__select_all->setEnabled(true);
+    ui_player_->pbtn__deselect_all->setEnabled(true);
   }
 
   void RViz2Bag_Player::pbtn__rosbag_pause__callback()
   {
+    if (bag_player_ == nullptr)
+    {
+    }
+    else
+    {
+      bag_player_->pause();
+
+      ui_player_->pbtn__rosbag_open->setEnabled(false);
+      ui_player_->dspin__rosbag_clock->setEnabled(false);
+      ui_player_->dspin__rosbag_rate->setEnabled(true);
+      ui_player_->check__rosbag_loop->setEnabled(false);
+      ui_player_->pbtn__rosbag_play->setEnabled(true);
+      ui_player_->pbtn__rosbag_pause->setEnabled(false);
+      ui_player_->pbtn__rosbag_stop->setEnabled(true);
+      ui_player_->pbtn__backward->setEnabled(true);
+      ui_player_->pbtn__play_next->setEnabled(true);
+      ui_player_->pbtn__select_all->setEnabled(false);
+      ui_player_->pbtn__deselect_all->setEnabled(false);
+    }
   }
 
   void RViz2Bag_Player::pbtn__backward__callback()
   {
+    if (bag_player_ == nullptr)
+    {
+      ui_player_->dspin__rosbag_elapsed_time->setValue(0.0);
+      ui_player_->hsld__rosbag_elapsed_time->setValue(0);
+    }
+    else
+    {
+    }
   }
 
   void RViz2Bag_Player::pbtn__play_next__callback()
   {
+    if (bag_player_ == nullptr)
+    {
+    }
+    else
+    {
+    }
   }
 
 } // namespace rviz2_bag
