@@ -2,18 +2,22 @@
 <ui version="4.0">
  <class>Player</class>
  <widget class="QWidget" name="Player">
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>349</width>
-    <height>368</height>
-   </rect>
-  </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>6</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>6</number>
+   </property>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
@@ -69,8 +73,14 @@
          <property name="suffix">
           <string> Hz</string>
          </property>
+         <property name="decimals">
+          <number>1</number>
+         </property>
          <property name="maximum">
           <double>1000.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>10.000000000000000</double>
          </property>
          <property name="value">
           <double>40.000000000000000</double>
@@ -101,6 +111,9 @@
          </property>
          <property name="maximum">
           <double>1000.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>0.100000000000000</double>
          </property>
          <property name="value">
           <double>1.000000000000000</double>

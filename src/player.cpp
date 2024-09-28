@@ -7,12 +7,17 @@ namespace rviz2_bag
       : rviz_common::Panel(parent), ui_player_(new Ui::Player())
   {
     ui_player_->setupUi(this);
-    // init_qt_panel();
+
     connect(
         ui_player_->pbtn__rosbag_open,
         &QPushButton::clicked,
         this,
         &RViz2Bag_Player::pbtn__rosbag_open__callback);
+    connect(
+        ui_player_->dspin__rosbag_rate,
+        static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+        this,
+        &RViz2Bag_Player::dspin__rosbag_rate__valueChanged);
     connect(
         ui_player_->dspin__rosbag_elapsed_time,
         static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
@@ -43,7 +48,6 @@ namespace rviz2_bag
         &QPushButton::clicked,
         this,
         &RViz2Bag_Player::pbtn__deselect_all__callback);
-
     connect(
         ui_player_->pbtn__rosbag_play,
         &QPushButton::clicked,
@@ -78,7 +82,7 @@ namespace rviz2_bag
 
   void RViz2Bag_Player::onInitialize()
   {
-    // init_ros_node();
+    nh_ = getDisplayContext()->getRosNodeAbstraction().lock()->get_raw_node();
   }
 
   void RViz2Bag_Player::save(rviz_common::Config config) const
@@ -89,6 +93,17 @@ namespace rviz2_bag
   void RViz2Bag_Player::load(const rviz_common::Config &config)
   {
     rviz_common::Panel::load(config);
+  }
+
+  void RViz2Bag_Player::dspin__rosbag_rate__valueChanged(double value)
+  {
+    if (bag_player_ == nullptr)
+    {
+    }
+    else
+    {
+      bag_player_->set_rate(value);
+    }
   }
 
   void RViz2Bag_Player::dspin__rosbag_elapsed_time__valueChanged(double value)
@@ -235,14 +250,30 @@ namespace rviz2_bag
     }
   }
 
-  void RViz2Bag_Player::play()
+  bool RViz2Bag_Player::play()
   {
     rosbag2_transport::PlayOptions play_options;
 
     play_options.read_ahead_queue_size = 1000;
     play_options.node_prefix = "";
     play_options.rate = ui_player_->dspin__rosbag_rate->value();
+
     play_options.topics_to_filter = {};
+    int list_count = ui_player_->list__rosbag_topic->count();
+    for (int i = 0; i < list_count; i++)
+    {
+      QListWidgetItem *item = ui_player_->list__rosbag_topic->item(i);
+      if (item->checkState() == Qt::Checked)
+      {
+        play_options.topics_to_filter.push_back(item->text().toStdString());
+      }
+    }
+    if (play_options.topics_to_filter.size() < 1)
+    {
+      RCLCPP_INFO_STREAM(nh_->get_logger(), "[rviz2_bag] No topic selected.");
+      return false;
+    }
+
     play_options.topic_qos_profile_overrides = {};
     play_options.loop = (ui_player_->check__rosbag_loop->checkState() == Qt::Checked);
     play_options.topic_remapping_options = {};
@@ -259,7 +290,7 @@ namespace rviz2_bag
         std::move(reader),
         *storage_options_,
         play_options,
-        getDisplayContext()->getRosNodeAbstraction().lock()->get_raw_node());
+        nh_);
 
     connect(
         bag_player_.get(),
@@ -275,6 +306,8 @@ namespace rviz2_bag
 
     spin_thread_ = std::make_unique<std::thread>([this]()
                                                  { this->bag_player_->play(); });
+
+    return true;
   }
 
   void RViz2Bag_Player::stop()
@@ -296,11 +329,15 @@ namespace rviz2_bag
   {
     if (bag_player_ == nullptr)
     {
-      play();
+      if (play() == false)
+        return;
     }
     else
     {
+      bool need_to_seek = (hsld__rosbag_elapsed_time__value__pause_ != ui_player_->hsld__rosbag_elapsed_time->value());
       bag_player_->resume();
+      if (need_to_seek)
+        hsld__rosbag_elapsed_time__sliderReleased();
     }
 
     ui_player_->pbtn__rosbag_open->setEnabled(false);
@@ -366,8 +403,14 @@ namespace rviz2_bag
       ui_player_->dspin__rosbag_elapsed_time->setValue(0.0);
       ui_player_->hsld__rosbag_elapsed_time->setValue(0);
     }
+    else if (bag_player_->is_paused())
+    {
+      ui_player_->dspin__rosbag_elapsed_time->setValue(0.0);
+      ui_player_->hsld__rosbag_elapsed_time->setValue(0);
+    }
     else
     {
+      bag_player_->seek(metadata_->starting_time.time_since_epoch().count());
     }
   }
 
@@ -390,7 +433,8 @@ namespace rviz2_bag
     auto elapsed_time_ns = std::chrono::nanoseconds(time_point) - metadata_->starting_time.time_since_epoch();
     auto elapsed_time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_time_ns);
 
-    ui_player_->hsld__rosbag_elapsed_time->setValue(elapsed_time_ms.count() / 10); // [10ms]
+    hsld__rosbag_elapsed_time__value__pause_ = elapsed_time_ms.count() / 10; // [10ms]
+    ui_player_->hsld__rosbag_elapsed_time->setValue(hsld__rosbag_elapsed_time__value__pause_);
     if (ui_player_->dspin__rosbag_elapsed_time->hasFocus() == false)
     {
       ui_player_->dspin__rosbag_elapsed_time->setValue(elapsed_time_ms.count() / 1000.0);

@@ -40,6 +40,7 @@ namespace rviz2_bag
         void save(rviz_common::Config config) const override;
 
     protected Q_SLOTS:
+        void dspin__rosbag_rate__valueChanged(double value);
         void dspin__rosbag_elapsed_time__valueChanged(double value);
         void dspin__rosbag_elapsed_time__editingFinished();
         void hsld__rosbag_elapsed_time__valueChanged(int value);
@@ -65,8 +66,10 @@ namespace rviz2_bag
         std::unique_ptr<std::thread> spin_thread_;
         std::unique_ptr<rclcpp::executors::SingleThreadedExecutor> exec_;
 
+        int hsld__rosbag_elapsed_time__value__pause_{0};
+
         void list_check_all(Qt::CheckState state);
-        void play();
+        bool play();
         void stop();
     };
 

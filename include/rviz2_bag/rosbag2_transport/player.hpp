@@ -177,6 +177,7 @@ private:
 
 private:
   rclcpp::Node::SharedPtr nh_;
+  bool clock_updated_enable_{true};
   bool no_stop_request_{true};
   rosbag2_storage::SerializedBagMessageSharedPtr peek_next_message_from_queue();
   void load_storage_content();

@@ -75,7 +75,7 @@ rclcpp::QoS publisher_qos_for_topic(
   if (qos_it != topic_qos_profile_overrides.end()) {
     RCLCPP_INFO_STREAM(
       logger,
-      "Overriding QoS profile for topic " << topic.name);
+      "[rviz2_bag] Overriding QoS profile for topic " << topic.name);
     return Rosbag2QoS{qos_it->second};
   } else if (topic.offered_qos_profiles.empty()) {
     return Rosbag2QoS{};
@@ -113,7 +113,7 @@ Player::Player(
     if (play_options_.start_offset < 0) {
       RCLCPP_WARN_STREAM(
         nh_->get_logger(),
-        "Invalid start offset value: " <<
+        "[rviz2_bag] Invalid start offset value: " <<
           RCUTILS_NS_TO_S(static_cast<double>(play_options_.start_offset)) <<
           ". Negative start offset ignored.");
     } else {
@@ -158,13 +158,13 @@ void Player::play()
   } else {
     RCLCPP_WARN_STREAM(
       nh_->get_logger(),
-      "Invalid delay value: " << play_options_.delay.nanoseconds() << ". Delay is disabled.");
+      "[rviz2_bag] Invalid delay value: " << play_options_.delay.nanoseconds() << ". Delay is disabled.");
   }
 
   try {
     do {
       if (delay > rclcpp::Duration(0, 0)) {
-        RCLCPP_INFO_STREAM(nh_->get_logger(), "Sleep " << delay.nanoseconds() << " ns");
+        RCLCPP_INFO_STREAM(nh_->get_logger(), "[rviz2_bag] Sleep " << delay.nanoseconds() << " ns");
         std::chrono::nanoseconds duration(delay.nanoseconds());
         std::this_thread::sleep_for(duration);
       }
@@ -183,7 +183,7 @@ void Player::play()
       }
     } while (rclcpp::ok() && no_stop_request_ && play_options_.loop);
   } catch (std::runtime_error & e) {
-    RCLCPP_ERROR(nh_->get_logger(), "Failed to play: %s", e.what());
+    RCLCPP_ERROR(nh_->get_logger(), "[rviz2_bag] Failed to play: %s", e.what());
   }
   std::lock_guard<std::mutex> lk(ready_to_play_from_queue_mutex_);
   is_ready_to_play_from_queue_ = false;
@@ -200,12 +200,14 @@ void Player::play()
         if (!pub.second->generic_publisher()->wait_for_all_acked(timeout)) {
           RCLCPP_ERROR(
             nh_->get_logger(),
+            "[rviz2_bag] "
             "Timed out while waiting for all published messages to be acknowledged for topic %s",
             pub.first.c_str());
         }
       } catch (std::exception & e) {
         RCLCPP_ERROR(
           nh_->get_logger(),
+          "[rviz2_bag] "
           "Exception occurred while waiting for all published messages to be acknowledged for "
           "topic %s : %s",
           pub.first.c_str(),
@@ -219,20 +221,23 @@ void Player::play()
 
 void Player::pause()
 {
+  clock_updated_enable_ = false;
   clock_->pause();
-  RCLCPP_INFO_STREAM(nh_->get_logger(), "Pausing play.");
+  RCLCPP_INFO_STREAM(nh_->get_logger(), "[rviz2_bag] Pause");
 }
 
 void Player::stop()
 {
+  clock_updated_enable_ = false;
   no_stop_request_ = false;
-  RCLCPP_INFO_STREAM(nh_->get_logger(), "Stopping play.");
+  RCLCPP_INFO_STREAM(nh_->get_logger(), "[rviz2_bag] Stop");
 }
 
 void Player::resume()
 {
+  clock_updated_enable_ = true;
   clock_->resume();
-  RCLCPP_INFO_STREAM(nh_->get_logger(), "Resuming play.");
+  RCLCPP_INFO_STREAM(nh_->get_logger(), "[rviz2_bag] Resume");
 }
 
 void Player::toggle_paused()
@@ -254,9 +259,9 @@ bool Player::set_rate(double rate)
 {
   bool ok = clock_->set_rate(rate);
   if (ok) {
-    RCLCPP_INFO_STREAM(nh_->get_logger(), "Set rate to " << rate);
+    RCLCPP_INFO_STREAM(nh_->get_logger(), "[rviz2_bag] Set rate to " << rate);
   } else {
-    RCLCPP_WARN_STREAM(nh_->get_logger(), "Failed to set rate to invalid value " << rate);
+    RCLCPP_WARN_STREAM(nh_->get_logger(), "[rviz2_bag] Failed to set rate to invalid value " << rate);
   }
   return ok;
 }
@@ -269,7 +274,7 @@ rosbag2_storage::SerializedBagMessageSharedPtr Player::peek_next_message_from_qu
       nh_->get_logger(),
       *nh_->get_clock(),
       1000,
-      "Message queue starved. Messages will be delayed. Consider "
+      "[rviz2_bag] Message queue starved. Messages will be delayed. Consider "
       "increasing the --read-ahead-queue-size option.");
 
     std::this_thread::sleep_for(std::chrono::microseconds(100));
@@ -291,11 +296,11 @@ rosbag2_storage::SerializedBagMessageSharedPtr Player::peek_next_message_from_qu
 bool Player::play_next()
 {
   if (!clock_->is_paused()) {
-    RCLCPP_WARN_STREAM(nh_->get_logger(), "Called play next, but not in paused state.");
+    RCLCPP_WARN_STREAM(nh_->get_logger(), "[rviz2_bag] Called play next, but not in paused state.");
     return false;
   }
 
-  RCLCPP_INFO_STREAM(nh_->get_logger(), "Playing next message.");
+  RCLCPP_INFO_STREAM(nh_->get_logger(), "[rviz2_bag] Playing next message.");
 
   // Temporary take over playback from play_messages_from_queue()
   std::lock_guard<std::mutex> main_play_loop_lk(skip_message_in_main_play_loop_mutex_);
@@ -475,7 +480,7 @@ void Player::prepare_publishers()
 
   clock_update_timer_ = nh_->create_wall_timer(
     std::chrono::milliseconds(100),
-    [this](){clockUpdated(clock_->now());}
+    [this](){if (clock_updated_enable_) clockUpdated(clock_->now());}
   );
 
   // Create topic publishers
@@ -514,7 +519,7 @@ void Player::prepare_publishers()
       // to ignore some unknown message type library
       RCLCPP_WARN(
         nh_->get_logger(),
-        "Ignoring a topic '%s', reason: %s.", topic.name.c_str(), e.what());
+        "[rviz2_bag] Ignoring a topic '%s', reason: %s.", topic.name.c_str(), e.what());
     }
   }
 
@@ -526,7 +531,7 @@ void Player::prepare_publishers()
 
     RCLCPP_WARN(
       nh_->get_logger(),
-      "--wait-for-all-acked is invalid for the below topics since reliability of QOS is "
+      "[rviz2_bag] --wait-for-all-acked is invalid for the below topics since reliability of QOS is "
       "BestEffort.\n%s", topic_without_support_acked.c_str());
   }
 
@@ -555,7 +560,7 @@ bool Player::publish_message(rosbag2_storage::SerializedBagMessageSharedPtr mess
       message_published = true;
     } catch (const std::exception & e) {
       RCLCPP_ERROR_STREAM(
-        nh_->get_logger(), "Failed to publish message on '" << message->topic_name <<
+        nh_->get_logger(), "[rviz2_bag] Failed to publish message on '" << message->topic_name <<
           "' topic. \nError: %s" << e.what());
     }
   }
