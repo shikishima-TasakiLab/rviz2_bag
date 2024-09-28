@@ -169,7 +169,7 @@ namespace rviz2_bag
   void RViz2Bag_Player::pbtn__rosbag_open__clicked()
   {
     // Open ROSBAG dir
-    QString dir = QFileDialog::getExistingDirectory(this, tr("Open ROSBAG"), "~", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    QString dir = QFileDialog::getExistingDirectory(this, tr("Open ROSBAG"), QDir::homePath(), QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     ui_player_->ledit__rosbag_dir->setText(dir);
 
     storage_options_ = std::make_unique<rosbag2_storage::StorageOptions>();

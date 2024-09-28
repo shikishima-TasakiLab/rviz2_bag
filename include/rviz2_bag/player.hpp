@@ -12,6 +12,8 @@
 #include <rosbag2_transport/reader_writer_factory.hpp>
 #include <rosbag2_storage/metadata_io.hpp>
 #include <rosbag2_storage/storage_options.hpp>
+
+#include <QtCore/QDir>
 #include <QtWidgets/QFileDialog>
 
 #include "rviz2_bag/rosbag2_transport/player.hpp"
