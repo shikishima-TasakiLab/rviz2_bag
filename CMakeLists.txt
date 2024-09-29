@@ -32,15 +32,15 @@ qt5_wrap_ui(UIC_FILES
 
 add_library(rviz2_bag SHARED
   ${UIC_FILES}
-  include/rviz2_bag/rosbag2_transport/logging.hpp
   include/rviz2_bag/rosbag2_transport/player.hpp
   include/rviz2_bag/rosbag2_transport/recorder.hpp
-  include/rviz2_bag/rosbag2_transport/topic_filter.hpp
   include/rviz2_bag/player.hpp
   include/rviz2_bag/recorder.hpp
+  src/rosbag2_transport/logging.hpp
   src/rosbag2_transport/player.cpp
   src/rosbag2_transport/recorder.cpp
   src/rosbag2_transport/topic_filter.cpp
+  src/rosbag2_transport/topic_filter.hpp
   src/player.cpp
   src/recorder.cpp
   src/icons/icons.qrc

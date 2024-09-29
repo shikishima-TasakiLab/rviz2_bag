@@ -26,8 +26,8 @@
 #include <rcpputils/split.hpp>
 #include <rosbag2_cpp/typesupport_helpers.hpp>
 
-#include "rviz2_bag/rosbag2_transport/logging.hpp"
-#include "rviz2_bag/rosbag2_transport/topic_filter.hpp"
+#include "logging.hpp"
+#include "topic_filter.hpp"
 
 namespace
 {

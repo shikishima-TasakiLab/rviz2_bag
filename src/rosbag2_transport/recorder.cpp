@@ -37,7 +37,7 @@
 #include <rosbag2_storage/yaml.hpp>
 #include <rosbag2_transport/qos.hpp>
 
-#include "rviz2_bag/rosbag2_transport/topic_filter.hpp"
+#include "topic_filter.hpp"
 
 namespace rosbag2_transport
 {
