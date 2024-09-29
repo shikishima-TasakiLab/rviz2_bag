@@ -95,7 +95,8 @@ namespace rviz2_bag
         QComboBox *combo_setting__log_level_;
         QTreeWidgetItem *tree_setting__name_delimiter_;
 
-        void list_check_all(Qt::CheckState state);
+        void tree_clear_all();
+        void tree_check_all(Qt::CheckState state);
         bool record();
         void stop();
     };

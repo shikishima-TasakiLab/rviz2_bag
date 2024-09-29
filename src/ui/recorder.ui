@@ -184,7 +184,7 @@
         </layout>
        </item>
        <item>
-        <widget class="QTreeWidget" name="list__topics">
+        <widget class="QTreeWidget" name="tree__topics">
          <property name="uniformRowHeights">
           <bool>true</bool>
          </property>

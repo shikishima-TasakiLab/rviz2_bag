@@ -284,10 +284,10 @@ namespace rviz2_bag
     rviz_common::Panel::save(config);
 
     rviz_common::Config topics = config.mapMakeChild("topics");
-    int list_count = ui_recorder_->list__topics->topLevelItemCount();
+    int list_count = ui_recorder_->tree__topics->topLevelItemCount();
     for (int i = 0; i < list_count; i++)
     {
-      QTreeWidgetItem *item = ui_recorder_->list__topics->topLevelItem(i);
+      QTreeWidgetItem *item = ui_recorder_->tree__topics->topLevelItem(i);
       rviz_common::Config topic = topics.mapMakeChild(item->text(0));
       topic.mapSetValue("checked", item->checkState(0) == Qt::Checked);
       topic.mapSetValue("type", item->text(1));
@@ -316,6 +316,107 @@ namespace rviz2_bag
   void RViz2Bag_Recorder::load(const rviz_common::Config &config)
   {
     rviz_common::Panel::load(config);
+
+    rviz_common::Config topics = config.mapGetChild("topics");
+    if (topics.getType() == rviz_common::Config::Map)
+    {
+      tree_clear_all();
+
+      rviz_common::Config::MapIterator topics_itr = topics.mapIterator();
+      while (topics_itr.isValid())
+      {
+        rviz_common::Config topic = topics_itr.currentChild();
+        if (topic.getType() == rviz_common::Config::Map)
+        {
+          QTreeWidgetItem *item = new QTreeWidgetItem();
+          QString topic_type;
+          bool is_checked;
+          if (topic.mapGetString("type", &topic_type) && (topic.mapGetBool("checked", &is_checked)))
+          {
+            item->setText(0, topics_itr.currentKey());
+            item->setText(1, topic_type);
+            item->setCheckState(0, (is_checked) ? Qt::Checked : Qt::Unchecked);
+          }
+        }
+        topics_itr.advance();
+      }
+    }
+
+    rviz_common::Config settings = config.mapGetChild("settings");
+    if (settings.getType() == rviz_common::Config::Map)
+    {
+      QString value_string;
+      bool value_bool;
+      int value_int;
+      if (settings.mapGetString("Name_Prefix", &value_string))
+      {
+        ui_recorder_->ledit__name_prefix->setText(value_string);
+      }
+      if (settings.mapGetBool("Name_Timestamp", &value_bool))
+      {
+        ui_recorder_->check__name_timestamp->setCheckState((value_bool) ? Qt::Checked : Qt::Unchecked);
+      }
+      if (settings.mapGetString("Name_Suffix", &value_string))
+      {
+        ui_recorder_->ledit__name_suffix->setText(value_string);
+      }
+      if (settings.mapGetBool("use_Sim_Time", &value_bool))
+      {
+        ui_recorder_->check__use_sim_time->setCheckState((value_bool) ? Qt::Checked : Qt::Unchecked);
+      }
+      if (settings.mapGetString("Storage", &value_string))
+      {
+        combo_setting__storage_->setCurrentText(value_string);
+      }
+      if (settings.mapGetString("Serialization_Format", &value_string))
+      {
+        combo_setting__serialization_format_->setCurrentText(value_string);
+      }
+      if (settings.mapGetBool("No_Discovery", &value_bool))
+      {
+        tree_setting__no_discovery_->setCheckState(1, (value_bool) ? Qt::Checked : Qt::Unchecked);
+      }
+      if (settings.mapGetInt("Polling_Interval__ms", &value_int))
+      {
+        spin_setting__polling_interval_->setValue(value_int);
+      }
+      if (settings.mapGetInt("Max_Bag_Size__MB", &value_int))
+      {
+        spin_setting__max_bag_size_->setValue(value_int);
+      }
+      if (settings.mapGetInt("Max_Bag_Duration__s", &value_int))
+      {
+        spin_setting__max_bag_duration_->setValue(value_int);
+      }
+      if (settings.mapGetInt("Max_Cache_Size__kB", &value_int))
+      {
+        spin_setting__max_cache_size_->setValue(value_int);
+      }
+      if (settings.mapGetString("Compression_Mode", &value_string))
+      {
+        combo_setting__compression_mode_->setCurrentText(value_string);
+      }
+      if (settings.mapGetString("Compression_Format", &value_string))
+      {
+        combo_setting__compression_format_->setCurrentText(value_string);
+      }
+      if (settings.mapGetInt("Compression_Queue_Size", &value_int))
+      {
+        spin_setting__compression_queue_size_->setValue(value_int);
+      }
+      if (settings.mapGetInt("Compression_Threads", &value_int))
+      {
+        spin_setting__compression_threads_->setValue(value_int);
+      }
+      if (settings.mapGetString("Log_Level", &value_string))
+      {
+        combo_setting__log_level_->setCurrentText(value_string);
+      }
+      if (settings.mapGetString("Name_Delimiter", &value_string))
+      {
+        tree_setting__name_delimiter_->setText(1, value_string);
+      }
+    }
   }
 
   void RViz2Bag_Recorder::pbtn__output_dir__clicked()
@@ -327,7 +428,7 @@ namespace rviz2_bag
 
     ui_recorder_->ledit__output_dir->setText(str_dir);
 
-    ui_recorder_->list__topics->setEnabled(true);
+    ui_recorder_->tree__topics->setEnabled(true);
     ui_recorder_->check__use_sim_time->setEnabled(true);
     ui_recorder_->pbtn__record->setEnabled(true);
     ui_recorder_->pbtn__pause->setEnabled(false);
@@ -349,7 +450,7 @@ namespace rviz2_bag
       bag_recorder_->resume();
     }
 
-    ui_recorder_->list__topics->setEnabled(false);
+    ui_recorder_->tree__topics->setEnabled(false);
     ui_recorder_->check__use_sim_time->setEnabled(false);
     ui_recorder_->pbtn__record->setEnabled(false);
     ui_recorder_->pbtn__pause->setEnabled(true);
@@ -363,7 +464,7 @@ namespace rviz2_bag
   {
     bag_recorder_->pause();
 
-    ui_recorder_->list__topics->setEnabled(false);
+    ui_recorder_->tree__topics->setEnabled(false);
     ui_recorder_->check__use_sim_time->setEnabled(false);
     ui_recorder_->pbtn__record->setEnabled(true);
     ui_recorder_->pbtn__pause->setEnabled(false);
@@ -377,7 +478,7 @@ namespace rviz2_bag
   {
     stop();
 
-    ui_recorder_->list__topics->setEnabled(true);
+    ui_recorder_->tree__topics->setEnabled(true);
     ui_recorder_->check__use_sim_time->setEnabled(true);
     ui_recorder_->pbtn__record->setEnabled(true);
     ui_recorder_->pbtn__pause->setEnabled(false);
@@ -389,22 +490,17 @@ namespace rviz2_bag
 
   void RViz2Bag_Recorder::pbtn__select_all__clicked()
   {
-    list_check_all(Qt::Checked);
+    tree_check_all(Qt::Checked);
   }
 
   void RViz2Bag_Recorder::pbtn__deselect_all__clicked()
   {
-    list_check_all(Qt::Unchecked);
+    tree_check_all(Qt::Unchecked);
   }
 
   void RViz2Bag_Recorder::pbtn__topic_refresh__clicked()
   {
-    int list_count = ui_recorder_->list__topics->topLevelItemCount();
-    for (int i = 0; i < list_count; i++)
-    {
-      QTreeWidgetItem *item = ui_recorder_->list__topics->takeTopLevelItem(0);
-      delete item;
-    }
+    tree_clear_all();
 
     std::map<std::string, std::vector<std::string>> topic_infos = nh_->get_topic_names_and_types();
     for (const auto &topic_itr : topic_infos)
@@ -417,7 +513,7 @@ namespace rviz2_bag
         item->setText(0, QString(topic_name.c_str()));
         item->setText(1, QString(topic_type.c_str()));
         item->setCheckState(0, Qt::Checked);
-        ui_recorder_->list__topics->addTopLevelItem(item);
+        ui_recorder_->tree__topics->addTopLevelItem(item);
       }
     }
   }
@@ -441,12 +537,22 @@ namespace rviz2_bag
     }
   }
 
-  void RViz2Bag_Recorder::list_check_all(Qt::CheckState state)
+  void RViz2Bag_Recorder::tree_clear_all()
   {
-    int list_count = ui_recorder_->list__topics->topLevelItemCount();
+    int list_count = ui_recorder_->tree__topics->topLevelItemCount();
     for (int i = 0; i < list_count; i++)
     {
-      QTreeWidgetItem *item = ui_recorder_->list__topics->topLevelItem(i);
+      QTreeWidgetItem *item = ui_recorder_->tree__topics->takeTopLevelItem(0);
+      delete item;
+    }
+  }
+
+  void RViz2Bag_Recorder::tree_check_all(Qt::CheckState state)
+  {
+    int list_count = ui_recorder_->tree__topics->topLevelItemCount();
+    for (int i = 0; i < list_count; i++)
+    {
+      QTreeWidgetItem *item = ui_recorder_->tree__topics->topLevelItem(i);
       item->setCheckState(0, state);
     }
   }
@@ -510,10 +616,10 @@ namespace rviz2_bag
       record_options_->is_discovery_disabled = (tree_setting__no_discovery_->checkState(1) == Qt::Checked);
       // record_options_->topics
       {
-        int list_count = ui_recorder_->list__topics->topLevelItemCount();
+        int list_count = ui_recorder_->tree__topics->topLevelItemCount();
         for (int i = 0; i < list_count; i++)
         {
-          QTreeWidgetItem *item = ui_recorder_->list__topics->topLevelItem(i);
+          QTreeWidgetItem *item = ui_recorder_->tree__topics->topLevelItem(i);
           if (item->checkState(0) == Qt::Checked)
           {
             std::string topic = item->text(0).toLocal8Bit().constData();
