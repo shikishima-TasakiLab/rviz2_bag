@@ -255,7 +255,10 @@ namespace rviz2_bag
         &RViz2Bag_Recorder::pbtn__topic_refresh__clicked);
   }
 
-  RViz2Bag_Recorder::~RViz2Bag_Recorder() {}
+  RViz2Bag_Recorder::~RViz2Bag_Recorder()
+  {
+    stop();
+  }
 
   void RViz2Bag_Recorder::onInitialize()
   {
@@ -320,6 +323,8 @@ namespace rviz2_bag
 
   void RViz2Bag_Recorder::pbtn__stop__clicked()
   {
+    stop();
+
     ui_recorder_->list__topics->setEnabled(true);
     ui_recorder_->check__use_sim_time->setEnabled(true);
     ui_recorder_->pbtn__record->setEnabled(true);
@@ -523,7 +528,30 @@ namespace rviz2_bag
       }
     }
 
-    return false;
+    auto writer = rosbag2_transport::ReaderWriterFactory::make_writer(*record_options_);
+    bag_recorder_ = std::make_shared<rosbag2_transport::Recorder>(
+        std::move(writer), *storage_options_, *record_options_, nh_);
+
+    // spin_thread_ = std::make_unique<std::thread>([this]()
+    //                                              { this->bag_recorder_->record(); });
+    bag_recorder_->record();
+
+    return true;
+  }
+
+  void RViz2Bag_Recorder::stop()
+  {
+    if (bag_recorder_ == nullptr)
+    {
+    }
+    else
+    {
+      bag_recorder_->stop();
+      // spin_thread_->join();
+
+      bag_recorder_.reset();
+      // spin_thread_.reset();
+    }
   }
 
 } // namespace rviz2_bag

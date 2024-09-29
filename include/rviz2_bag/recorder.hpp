@@ -15,6 +15,7 @@
 #include <rosbag2_cpp/plugins/plugin_utils.hpp>
 #include <rosbag2_storage/default_storage_id.hpp>
 #include <rosbag2_storage/storage_interfaces/read_write_interface.hpp>
+#include <rosbag2_transport/reader_writer_factory.hpp>
 #include <rosbag2_transport/record_options.hpp>
 
 #include <QtCore/QDir>
@@ -58,15 +59,15 @@ namespace rviz2_bag
         void pbtn__select_all__clicked();
         void pbtn__deselect_all__clicked();
         void pbtn__topic_refresh__clicked();
-        
 
     protected:
         rclcpp::Node::SharedPtr nh_;
         Ui::Recorder *ui_recorder_;
-        
+        // std::unique_ptr<std::thread> spin_thread_;
+
         std::unique_ptr<rosbag2_transport::RecordOptions> record_options_;
         std::unique_ptr<rosbag2_storage::StorageOptions> storage_options_;
-        std::shared_ptr<rosbag2_transport::Recorder> recorder_;
+        std::shared_ptr<rosbag2_transport::Recorder> bag_recorder_;
 
         QTreeWidgetItem *tree_setting__storage_;
         QComboBox *combo_setting__storage_;
@@ -95,6 +96,7 @@ namespace rviz2_bag
 
         void list_check_all(Qt::CheckState state);
         bool record();
+        void stop();
     };
 
 } // namespace rviz2_bag
