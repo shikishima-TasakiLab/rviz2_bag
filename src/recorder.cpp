@@ -294,6 +294,10 @@ namespace rviz2_bag
     }
 
     rviz_common::Config settings = config.mapMakeChild("settings");
+    settings.mapSetValue("Name_Prefix", ui_recorder_->ledit__name_prefix->text());
+    settings.mapSetValue("Name_Timestamp", ui_recorder_->check__name_timestamp->checkState() == Qt::Checked);
+    settings.mapSetValue("Name_Suffix", ui_recorder_->ledit__name_suffix->text());
+    settings.mapSetValue("use_Sim_Time", ui_recorder_->check__use_sim_time->checkState() == Qt::Checked);
     settings.mapSetValue("Storage", combo_setting__storage_->currentText());
     settings.mapSetValue("Serialization_Format", combo_setting__serialization_format_->currentText());
     settings.mapSetValue("No_Discovery", tree_setting__no_discovery_->checkState(1) == Qt::Checked);
