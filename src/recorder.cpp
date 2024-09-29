@@ -209,6 +209,7 @@ namespace rviz2_bag
         tree_setting__name_sdelimiter_ = new QTreeWidgetItem();
         tree_setting__name_sdelimiter_->setText(0, QCoreApplication::translate("Recorder", "Name Delimiter", nullptr));
         tree_setting__name_sdelimiter_->setText(1, QString("_"));
+        ui_recorder_->tree__setting->addTopLevelItem(tree_setting__name_sdelimiter_);
       }
     }
 
@@ -262,6 +263,19 @@ namespace rviz2_bag
   void RViz2Bag_Recorder::save(rviz_common::Config config) const
   {
     rviz_common::Panel::save(config);
+
+    rviz_common::Config topics = config.mapMakeChild("topics");
+    int list_count = ui_recorder_->list__topics->topLevelItemCount();
+    for (int i = 0; i < list_count; i++)
+    {
+      QTreeWidgetItem *item = ui_recorder_->list__topics->topLevelItem(i);
+      rviz_common::Config topic = topics.mapMakeChild(item->text(0));
+      topic.mapSetValue("checked", item->checkState(0) == Qt::Checked);
+      topic.mapSetValue("type", item->text(1));
+    }
+
+    rviz_common::Config settings = config.mapMakeChild("settings");
+    settings.mapSetValue("storage", combo_setting__storage_->currentText());
   }
 
   void RViz2Bag_Recorder::load(const rviz_common::Config &config)

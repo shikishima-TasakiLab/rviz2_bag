@@ -89,7 +89,7 @@
           <item>
            <widget class="QLineEdit" name="ledit__name_suffix">
             <property name="text">
-             <string></string>
+             <string/>
             </property>
             <property name="placeholderText">
              <string>Suffix</string>
@@ -218,6 +218,9 @@
        </property>
        <item>
         <widget class="QTreeWidget" name="tree__setting">
+         <property name="headerHidden">
+          <bool>true</bool>
+         </property>
          <column>
           <property name="text">
            <string/>
