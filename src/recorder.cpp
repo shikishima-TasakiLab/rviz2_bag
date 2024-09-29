@@ -1,7 +1,18 @@
 #include "rviz2_bag/recorder.hpp"
 
+#include <QtWidgets/QStyledItemDelegate>
+
 namespace rviz2_bag
 {
+  class UneditableDelegate : public QStyledItemDelegate
+  {
+  public:
+    UneditableDelegate(QObject *parent = nullptr) : QStyledItemDelegate(parent) {}
+    virtual QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
+    {
+      return nullptr;
+    }
+  };
 
   RViz2Bag_Recorder::RViz2Bag_Recorder(QWidget *parent)
       : rviz_common::Panel(parent), ui_recorder_(new Ui::Recorder())
@@ -10,6 +21,8 @@ namespace rviz2_bag
 
     // Setting
     {
+      ui_recorder_->tree__setting->setItemDelegateForColumn(0, new UneditableDelegate(this));
+
       // Setting - Storage
       {
         std::unordered_set<std::string> writer_choices = rosbag2_cpp::plugins::get_class_plugins<rosbag2_storage::storage_interfaces::ReadWriteInterface>();
@@ -206,10 +219,11 @@ namespace rviz2_bag
 
       // Setting - Name Delimiter
       {
-        tree_setting__name_sdelimiter_ = new QTreeWidgetItem();
-        tree_setting__name_sdelimiter_->setText(0, QCoreApplication::translate("Recorder", "Name Delimiter", nullptr));
-        tree_setting__name_sdelimiter_->setText(1, QString("_"));
-        ui_recorder_->tree__setting->addTopLevelItem(tree_setting__name_sdelimiter_);
+        tree_setting__name_delimiter_ = new QTreeWidgetItem();
+        tree_setting__name_delimiter_->setText(0, QCoreApplication::translate("Recorder", "Name Delimiter", nullptr));
+        tree_setting__name_delimiter_->setText(1, QString("_"));
+        tree_setting__name_delimiter_->setFlags(tree_setting__name_delimiter_->flags() | Qt::ItemIsEditable);
+        ui_recorder_->tree__setting->addTopLevelItem(tree_setting__name_delimiter_);
       }
     }
 
@@ -248,6 +262,11 @@ namespace rviz2_bag
         &QPushButton::clicked,
         this,
         &RViz2Bag_Recorder::pbtn__topic_refresh__clicked);
+    connect(
+        ui_recorder_->tree__setting,
+        &QTreeWidget::itemChanged,
+        this,
+        &RViz2Bag_Recorder::tree__setting__itemChanged);
   }
 
   RViz2Bag_Recorder::~RViz2Bag_Recorder()
@@ -275,7 +294,19 @@ namespace rviz2_bag
     }
 
     rviz_common::Config settings = config.mapMakeChild("settings");
-    settings.mapSetValue("storage", combo_setting__storage_->currentText());
+    settings.mapSetValue("Storage", combo_setting__storage_->currentText());
+    settings.mapSetValue("Serialization_Format", combo_setting__serialization_format_->currentText());
+    settings.mapSetValue("No_Discovery", tree_setting__no_discovery_->checkState(1) == Qt::Checked);
+    settings.mapSetValue("Polling_Interval__ms", spin_setting__polling_interval_->value());
+    settings.mapSetValue("Max_Bag_Size__MB", spin_setting__max_bag_size_->value());
+    settings.mapSetValue("Max_Bag_Duration__s", spin_setting__max_bag_duration_->value());
+    settings.mapSetValue("Max_Cache_Size__kB", spin_setting__max_cache_size_->value());
+    settings.mapSetValue("Compression_Mode", combo_setting__compression_mode_->currentText());
+    settings.mapSetValue("Compression_Format", combo_setting__compression_format_->currentText());
+    settings.mapSetValue("Compression_Queue_Size", spin_setting__compression_queue_size_->value());
+    settings.mapSetValue("Compression_Threads", spin_setting__compression_threads_->value());
+    settings.mapSetValue("Log_Level", combo_setting__log_level_->currentText());
+    settings.mapSetValue("Name_Delimiter", tree_setting__name_delimiter_->text(1));
   }
 
   void RViz2Bag_Recorder::load(const rviz_common::Config &config)
@@ -387,6 +418,25 @@ namespace rviz2_bag
     }
   }
 
+  void RViz2Bag_Recorder::tree__setting__itemChanged(QTreeWidgetItem *item, int column)
+  {
+    if ((item == tree_setting__name_delimiter_) && (column == 1))
+    {
+      item->setText(
+          column,
+          item->text(column)
+              .replace("\\", "")
+              .replace("/", "")
+              .replace(":", "")
+              .replace("*", "")
+              .replace("?", "")
+              .replace("\"", "")
+              .replace("<", "")
+              .replace(">", "")
+              .replace("|", ""));
+    }
+  }
+
   void RViz2Bag_Recorder::list_check_all(Qt::CheckState state)
   {
     int list_count = ui_recorder_->list__topics->topLevelItemCount();
@@ -409,7 +459,7 @@ namespace rviz2_bag
         if (ui_recorder_->check__name_timestamp->checkState() == Qt::Checked)
         {
           if (uri.isEmpty() == false)
-            uri += tree_setting__name_sdelimiter_->text(1);
+            uri += tree_setting__name_delimiter_->text(1);
 
           QDateTime datetime = QDateTime::currentDateTime();
           uri += datetime.toString("yyyy_MM_dd-hh_mm_ss");
@@ -418,7 +468,7 @@ namespace rviz2_bag
         if (suffix.isEmpty() == false)
         {
           if (uri.isEmpty() == false)
-            uri += tree_setting__name_sdelimiter_->text(1);
+            uri += tree_setting__name_delimiter_->text(1);
 
           uri += ui_recorder_->ledit__name_suffix->text();
         }

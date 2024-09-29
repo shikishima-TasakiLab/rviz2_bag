@@ -59,6 +59,7 @@ namespace rviz2_bag
         void pbtn__select_all__clicked();
         void pbtn__deselect_all__clicked();
         void pbtn__topic_refresh__clicked();
+        void tree__setting__itemChanged(QTreeWidgetItem *item, int column);
 
     protected:
         rclcpp::Node::SharedPtr nh_;
@@ -92,7 +93,7 @@ namespace rviz2_bag
         QSpinBox *spin_setting__compression_threads_;
         QTreeWidgetItem *tree_setting__log_level_;
         QComboBox *combo_setting__log_level_;
-        QTreeWidgetItem *tree_setting__name_sdelimiter_;
+        QTreeWidgetItem *tree_setting__name_delimiter_;
 
         void list_check_all(Qt::CheckState state);
         bool record();
