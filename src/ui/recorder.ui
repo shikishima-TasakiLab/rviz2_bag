@@ -185,6 +185,15 @@
        </item>
        <item>
         <widget class="QTreeWidget" name="list__topics">
+         <property name="uniformRowHeights">
+          <bool>true</bool>
+         </property>
+         <property name="itemsExpandable">
+          <bool>false</bool>
+         </property>
+         <attribute name="headerDefaultSectionSize">
+          <number>200</number>
+         </attribute>
          <column>
           <property name="text">
            <string>topic</string>
@@ -218,9 +227,15 @@
        </property>
        <item>
         <widget class="QTreeWidget" name="tree__setting">
+         <property name="uniformRowHeights">
+          <bool>true</bool>
+         </property>
          <property name="headerHidden">
           <bool>true</bool>
          </property>
+         <attribute name="headerDefaultSectionSize">
+          <number>200</number>
+         </attribute>
          <column>
           <property name="text">
            <string/>
