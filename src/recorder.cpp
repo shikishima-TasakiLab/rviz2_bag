@@ -211,6 +211,13 @@ namespace rviz2_bag
       ui_recorder_->tree__setting->setItemWidget(tree_setting__log_level_, 1, combo_setting__log_level_);
     }
 
+    // Setting - Name Delimiter
+    {
+      tree_setting__name_sdelimiter_ = new QTreeWidgetItem();
+      tree_setting__name_sdelimiter_->setText(0, QCoreApplication::translate("Recorder", "Name Delimiter", nullptr));
+      tree_setting__name_sdelimiter_->setText(1, QString("_"));
+    }
+
     connect(
         ui_recorder_->pbtn__output_dir,
         &QPushButton::clicked,
@@ -286,6 +293,9 @@ namespace rviz2_bag
 
   void RViz2Bag_Recorder::pbtn__record__clicked()
   {
+    if (record() == false)
+      return;
+
     ui_recorder_->list__topics->setEnabled(false);
     ui_recorder_->check__use_sim_time->setEnabled(false);
     ui_recorder_->pbtn__record->setEnabled(false);
@@ -363,6 +373,157 @@ namespace rviz2_bag
       QTreeWidgetItem *item = ui_recorder_->list__topics->topLevelItem(i);
       item->setCheckState(0, state);
     }
+  }
+
+  bool RViz2Bag_Recorder::record()
+  {
+    // Storage Options
+    {
+      storage_options_ = std::make_unique<rosbag2_storage::StorageOptions>();
+
+      // storage_options_->uri
+      {
+        QString uri = ui_recorder_->ledit__name_prefix->text(); // prefix
+        if (ui_recorder_->check__name_timestamp->checkState() == Qt::Checked)
+        {
+          if (uri.isEmpty() == false)
+            uri += tree_setting__name_sdelimiter_->text(1);
+
+          QDateTime datetime = QDateTime::currentDateTime();
+          uri += datetime.toString("yyyy_MM_dd-hh_mm_ss");
+        }
+        QString suffix = ui_recorder_->ledit__name_suffix->text();
+        if (suffix.isEmpty() == false)
+        {
+          if (uri.isEmpty() == false)
+            uri += tree_setting__name_sdelimiter_->text(1);
+
+          uri += ui_recorder_->ledit__name_suffix->text();
+        }
+
+        QDir output_dir(ui_recorder_->ledit__output_dir->text());
+        QDir rosbag_dir(output_dir.filePath(uri));
+        storage_options_->uri = rosbag_dir.path().toLocal8Bit().constData();
+        if (rosbag_dir.exists() == true)
+        {
+          RCLCPP_ERROR_STREAM(
+              nh_->get_logger(),
+              "[rviz2_bag] Output folder '" << storage_options_->uri << "' already exists.");
+          return false;
+        }
+
+        RCLCPP_DEBUG_STREAM(
+            nh_->get_logger(),
+            "[rviz2_bag] " << storage_options_->uri);
+      }
+
+      storage_options_->storage_id = combo_setting__storage_->currentText().toLocal8Bit().constData();
+      storage_options_->max_bagfile_size = spin_setting__max_bag_size_->value();
+      storage_options_->max_bagfile_duration = spin_setting__max_bag_duration_->value();
+      storage_options_->max_cache_size = spin_setting__max_cache_size_->value();
+      storage_options_->storage_preset_profile = "";
+      storage_options_->storage_config_uri = "";
+      storage_options_->snapshot_mode = false;
+    }
+
+    // Record Options
+    {
+      record_options_ = std::make_unique<rosbag2_transport::RecordOptions>();
+
+      record_options_->all = false;
+      record_options_->is_discovery_disabled = (tree_setting__no_discovery_->checkState(1) == Qt::Checked);
+      // record_options_->topics
+      {
+        int list_count = ui_recorder_->list__topics->topLevelItemCount();
+        for (int i = 0; i < list_count; i++)
+        {
+          QTreeWidgetItem *item = ui_recorder_->list__topics->topLevelItem(i);
+          if (item->checkState(0) == Qt::Checked)
+          {
+            std::string topic = item->text(0).toLocal8Bit().constData();
+            record_options_->topics.push_back(topic);
+            RCLCPP_DEBUG_STREAM(
+                nh_->get_logger(),
+                "[rviz2_bag] " << topic);
+          }
+        }
+
+        if (record_options_->topics.size() < 1)
+        {
+          RCLCPP_ERROR_STREAM(
+              nh_->get_logger(),
+              "[rviz2_bag] "
+              "Invalid choice: Must specify topic(s).");
+          return false;
+        }
+      }
+      record_options_->rmw_serialization_format = combo_setting__serialization_format_->currentText().toLocal8Bit().constData();
+      record_options_->topic_polling_interval = std::chrono::milliseconds(spin_setting__polling_interval_->value());
+      record_options_->regex = "";
+      record_options_->exclude = "";
+      record_options_->node_prefix = "";
+      // record_options_->compression_mode
+      // record_options_->compression_format
+      // record_options_->compression_queue_size
+      // record_options_->compression_threads
+      {
+        QString compression_mode = combo_setting__compression_mode_->currentText();
+        QString compression_format = combo_setting__compression_format_->currentText();
+        if ((compression_mode == "none") && (compression_format.isEmpty() == false))
+        {
+          RCLCPP_ERROR_STREAM(
+              nh_->get_logger(),
+              "[rviz2_bag] "
+              "Invalid choice "
+              "(Compression Mode & Compression Format): "
+              "Cannot specify compression format without a compression mode.");
+          return false;
+        }
+
+        if ((storage_options_->storage_id == "mcap") && (compression_mode == "message"))
+        {
+          RCLCPP_ERROR_STREAM(
+              nh_->get_logger(),
+              "[rviz2_bag] "
+              "Invalid choice "
+              "(Storage & Compression Mode): "
+              "compression_mode 'message' is not supported by the MCAP storage plugin. You can enable chunk compression by setting `compression: 'Zstd'` in storage config.");
+          return false;
+        }
+
+        int compression_queue_size = spin_setting__compression_queue_size_->value();
+        if (compression_queue_size < 0)
+        {
+          RCLCPP_ERROR_STREAM(
+              nh_->get_logger(),
+              "[rviz2_bag] "
+              "Compression queue size must be at least 0.");
+          return false;
+        }
+
+        record_options_->compression_mode = compression_mode.toUpper().toLocal8Bit().constData();
+        record_options_->compression_format = compression_format.toLocal8Bit().constData();
+        record_options_->compression_queue_size = compression_queue_size;
+        record_options_->compression_threads = spin_setting__compression_threads_->value();
+      }
+      record_options_->topic_qos_profile_overrides = {};
+      record_options_->include_hidden_topics = false;
+      record_options_->include_unpublished_topics = false;
+      record_options_->ignore_leaf_topics = false;
+      record_options_->start_paused = false;
+      record_options_->use_sim_time = (ui_recorder_->check__use_sim_time->checkState() == Qt::Checked);
+
+      if (record_options_->is_discovery_disabled && record_options_->use_sim_time)
+      {
+        RCLCPP_ERROR_STREAM(
+            nh_->get_logger(),
+            "[rviz2_bag] 'use Sim Time' and 'No Discovery' both set, but are incompatible settings. "
+            "The /clock topic needs to be discovered to record with sim time.");
+        return false;
+      }
+    }
+
+    return false;
   }
 
 } // namespace rviz2_bag

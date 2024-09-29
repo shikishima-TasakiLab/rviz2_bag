@@ -69,7 +69,7 @@
           <item>
            <widget class="QLineEdit" name="ledit__name_prefix">
             <property name="text">
-             <string>rosbag2_</string>
+             <string>rosbag2</string>
             </property>
             <property name="placeholderText">
              <string>Prefix</string>
@@ -88,6 +88,9 @@
           </item>
           <item>
            <widget class="QLineEdit" name="ledit__name_suffix">
+            <property name="text">
+             <string></string>
+            </property>
             <property name="placeholderText">
              <string>Suffix</string>
             </property>

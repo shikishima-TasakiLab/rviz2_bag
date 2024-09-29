@@ -18,6 +18,7 @@
 #include <rosbag2_transport/record_options.hpp>
 
 #include <QtCore/QDir>
+#include <QtCore/QDateTime>
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QSpinBox>
@@ -64,6 +65,7 @@ namespace rviz2_bag
         Ui::Recorder *ui_recorder_;
         
         std::unique_ptr<rosbag2_transport::RecordOptions> record_options_;
+        std::unique_ptr<rosbag2_storage::StorageOptions> storage_options_;
         std::shared_ptr<rosbag2_transport::Recorder> recorder_;
 
         QTreeWidgetItem *tree_setting__storage_;
@@ -89,8 +91,10 @@ namespace rviz2_bag
         QSpinBox *spin_setting__compression_threads_;
         QTreeWidgetItem *tree_setting__log_level_;
         QComboBox *combo_setting__log_level_;
+        QTreeWidgetItem *tree_setting__name_sdelimiter_;
 
         void list_check_all(Qt::CheckState state);
+        bool record();
     };
 
 } // namespace rviz2_bag

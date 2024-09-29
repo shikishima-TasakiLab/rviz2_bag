@@ -51,10 +51,11 @@ Recorder::Recorder(
 : writer_(std::move(writer)),
   storage_options_(storage_options),
   record_options_(record_options),
-  nh_(node_handle),
   stop_discovery_(record_options_.is_discovery_disabled),
   paused_(record_options.start_paused)
 {
+  nh_ = node_handle;
+
   if (record_options_.use_sim_time && record_options_.is_discovery_disabled) {
     throw std::runtime_error(
             "use_sim_time and is_discovery_disabled both set, but are incompatible settings. "
