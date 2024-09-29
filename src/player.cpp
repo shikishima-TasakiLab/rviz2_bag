@@ -88,11 +88,36 @@ namespace rviz2_bag
   void RViz2Bag_Player::save(rviz_common::Config config) const
   {
     rviz_common::Panel::save(config);
+
+    rviz_common::Config settings = config.mapMakeChild("settings");
+    settings.mapSetValue("clock", ui_player_->dspin__rosbag_clock->value());
+    settings.mapSetValue("Rate", ui_player_->dspin__rosbag_rate->value());
+    settings.mapSetValue("Loop", ui_player_->check__rosbag_loop->checkState() == Qt::Checked);
   }
 
   void RViz2Bag_Player::load(const rviz_common::Config &config)
   {
     rviz_common::Panel::load(config);
+
+    rviz_common::Config settings = config.mapGetChild("settings");
+    if (settings.getType() == rviz_common::Config::Map)
+    {
+      float value_float;
+      bool value_bool;
+
+      if (settings.mapGetFloat("clock", &value_float))
+      {
+        ui_player_->dspin__rosbag_clock->setValue(value_float);
+      }
+      if (settings.mapGetFloat("Rate", &value_float))
+      {
+        ui_player_->dspin__rosbag_rate->setValue(value_float);
+      }
+      if (settings.mapGetBool("Loop", &value_bool))
+      {
+        ui_player_->check__rosbag_loop->setCheckState((value_bool) ? Qt::Checked : Qt::Unchecked);
+      }
+    }
   }
 
   void RViz2Bag_Player::dspin__rosbag_rate__valueChanged(double value)
@@ -195,27 +220,28 @@ namespace rviz2_bag
     ui_player_->dspin__rosbag_elapsed_time->setMaximum(elapsed_time_max / 100.0);
 
     // Reset Topic List
-    int list_count = ui_player_->list__rosbag_topic->count();
+    int list_count = ui_player_->tree__rosbag_topics->topLevelItemCount();
     for (int i = 0; i < list_count; i++)
     {
-      QListWidgetItem *item = ui_player_->list__rosbag_topic->takeItem(0);
+      QTreeWidgetItem *item = ui_player_->tree__rosbag_topics->takeTopLevelItem(0);
       delete item;
     }
 
     // Load Topic List
     for (rosbag2_storage::TopicInformation topic_with_message_count : metadata_->topics_with_message_count)
     {
-      QListWidgetItem *listWidgetItem = new QListWidgetItem();
-      listWidgetItem->setFlags(listWidgetItem->flags() | Qt::ItemIsUserCheckable);
-      listWidgetItem->setCheckState(Qt::Checked);
-      listWidgetItem->setText(topic_with_message_count.topic_metadata.name.c_str());
-      ui_player_->list__rosbag_topic->addItem(listWidgetItem);
+      QTreeWidgetItem *item = new QTreeWidgetItem();
+      // item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
+      item->setCheckState(0, Qt::Checked);
+      item->setText(0, QString(topic_with_message_count.topic_metadata.name.c_str()));
+      item->setText(1, QString(topic_with_message_count.topic_metadata.type.c_str()));
+      ui_player_->tree__rosbag_topics->addTopLevelItem(item);
     }
 
     // Enable UI
     ui_player_->hsld__rosbag_elapsed_time->setEnabled(true);
     ui_player_->dspin__rosbag_elapsed_time->setEnabled(true);
-    ui_player_->list__rosbag_topic->setEnabled(true);
+    ui_player_->tree__rosbag_topics->setEnabled(true);
 
     ui_player_->pbtn__rosbag_open->setEnabled(true);
     ui_player_->dspin__rosbag_clock->setEnabled(true);
@@ -242,11 +268,11 @@ namespace rviz2_bag
 
   void RViz2Bag_Player::list_check_all(Qt::CheckState state)
   {
-    int list_count = ui_player_->list__rosbag_topic->count();
+    int list_count = ui_player_->tree__rosbag_topics->topLevelItemCount();
     for (int i = 0; i < list_count; i++)
     {
-      QListWidgetItem *item = ui_player_->list__rosbag_topic->item(i);
-      item->setCheckState(state);
+      QTreeWidgetItem *item = ui_player_->tree__rosbag_topics->topLevelItem(i);
+      item->setCheckState(0, state);
     }
   }
 
@@ -259,13 +285,13 @@ namespace rviz2_bag
     play_options.rate = ui_player_->dspin__rosbag_rate->value();
 
     play_options.topics_to_filter = {};
-    int list_count = ui_player_->list__rosbag_topic->count();
+    int list_count = ui_player_->tree__rosbag_topics->topLevelItemCount();
     for (int i = 0; i < list_count; i++)
     {
-      QListWidgetItem *item = ui_player_->list__rosbag_topic->item(i);
-      if (item->checkState() == Qt::Checked)
+      QTreeWidgetItem *item = ui_player_->tree__rosbag_topics->topLevelItem(i);
+      if (item->checkState(0) == Qt::Checked)
       {
-        play_options.topics_to_filter.push_back(item->text().toStdString());
+        play_options.topics_to_filter.push_back(item->text(0).toStdString());
       }
     }
     if (play_options.topics_to_filter.size() < 1)

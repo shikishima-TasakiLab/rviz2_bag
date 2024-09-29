@@ -2,14 +2,6 @@
 <ui version="4.0">
  <class>Player</class>
  <widget class="QWidget" name="Player">
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>323</width>
-    <height>363</height>
-   </rect>
-  </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
@@ -305,7 +297,7 @@
     </layout>
    </item>
    <item>
-    <widget class="QListWidget" name="list__rosbag_topic">
+    <widget class="QTreeWidget" name="tree__rosbag_topics">
      <property name="enabled">
       <bool>false</bool>
      </property>
@@ -315,6 +307,25 @@
      <property name="selectionBehavior">
       <enum>QAbstractItemView::SelectRows</enum>
      </property>
+     <property name="uniformRowHeights">
+      <bool>true</bool>
+     </property>
+     <property name="itemsExpandable">
+      <bool>false</bool>
+     </property>
+     <attribute name="headerDefaultSectionSize">
+      <number>200</number>
+     </attribute>
+     <column>
+      <property name="text">
+       <string>topic</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>type</string>
+      </property>
+     </column>
     </widget>
    </item>
   </layout>
