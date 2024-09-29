@@ -72,10 +72,10 @@ install(
   DIRECTORY include/
   DESTINATION include/${PROJECT_NAME}
 )
-# install(
-#   DIRECTORY icons
-#   DESTINATION share/${PROJECT_NAME}
-# )
+install(
+  DIRECTORY icons
+  DESTINATION share/${PROJECT_NAME}
+)
 install(
   TARGETS rviz2_bag
   EXPORT export_${PROJECT_NAME}
