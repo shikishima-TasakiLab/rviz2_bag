@@ -366,6 +366,8 @@ namespace rviz2_bag
         hsld__rosbag_elapsed_time__sliderReleased();
     }
 
+    ui_player_->tree__rosbag_topics->setEnabled(false);
+
     ui_player_->pbtn__rosbag_open->setEnabled(false);
     ui_player_->dspin__rosbag_clock->setEnabled(false);
     ui_player_->dspin__rosbag_rate->setEnabled(true);
@@ -385,6 +387,8 @@ namespace rviz2_bag
 
     ui_player_->dspin__rosbag_elapsed_time->setValue(0.0);
     ui_player_->hsld__rosbag_elapsed_time->setValue(0);
+
+    ui_player_->tree__rosbag_topics->setEnabled(true);
 
     ui_player_->pbtn__rosbag_open->setEnabled(true);
     ui_player_->dspin__rosbag_clock->setEnabled(true);
