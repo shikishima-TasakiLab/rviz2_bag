@@ -134,7 +134,7 @@ namespace rviz2_bag
         spin_setting__max_cache_size_ = new QSpinBox();
         spin_setting__max_cache_size_->setMinimum(1);
         spin_setting__max_cache_size_->setMaximum(1024 * 1024);
-        spin_setting__max_cache_size_->setValue(1024);
+        spin_setting__max_cache_size_->setValue(100 * 1024);
         spin_setting__max_cache_size_->setSingleStep(128);
         spin_setting__max_cache_size_->setSuffix(QString(" kB"));
         spin_setting__max_cache_size_->setAlignment(Qt::AlignRight | Qt::AlignTrailing | Qt::AlignVCenter);
@@ -600,9 +600,9 @@ namespace rviz2_bag
       }
 
       storage_options_->storage_id = combo_setting__storage_->currentText().toLocal8Bit().constData();
-      storage_options_->max_bagfile_size = spin_setting__max_bag_size_->value();
+      storage_options_->max_bagfile_size = static_cast<uint64_t>(spin_setting__max_bag_size_->value()) * 1024 * 1024;
       storage_options_->max_bagfile_duration = spin_setting__max_bag_duration_->value();
-      storage_options_->max_cache_size = spin_setting__max_cache_size_->value();
+      storage_options_->max_cache_size = static_cast<uint64_t>(spin_setting__max_cache_size_->value()) * 1024;
       storage_options_->storage_preset_profile = "";
       storage_options_->storage_config_uri = "";
       storage_options_->snapshot_mode = false;
