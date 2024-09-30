@@ -337,6 +337,7 @@ namespace rviz2_bag
             item->setText(1, topic_type);
             item->setCheckState(0, (is_checked) ? Qt::Checked : Qt::Unchecked);
           }
+          ui_recorder_->tree__topics->addTopLevelItem(item);
         }
         topics_itr.advance();
       }
