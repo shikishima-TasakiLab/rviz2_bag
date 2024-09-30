@@ -451,6 +451,7 @@ namespace rviz2_bag
       bag_recorder_->resume();
     }
 
+    ui_recorder_->tab_2->setEnabled(false);
     ui_recorder_->tree__topics->setEnabled(false);
     ui_recorder_->check__use_sim_time->setEnabled(false);
     ui_recorder_->pbtn__record->setEnabled(false);
@@ -465,6 +466,7 @@ namespace rviz2_bag
   {
     bag_recorder_->pause();
 
+    ui_recorder_->tab_2->setEnabled(false);
     ui_recorder_->tree__topics->setEnabled(false);
     ui_recorder_->check__use_sim_time->setEnabled(false);
     ui_recorder_->pbtn__record->setEnabled(true);
@@ -479,6 +481,7 @@ namespace rviz2_bag
   {
     stop();
 
+    ui_recorder_->tab_2->setEnabled(true);
     ui_recorder_->tree__topics->setEnabled(true);
     ui_recorder_->check__use_sim_time->setEnabled(true);
     ui_recorder_->pbtn__record->setEnabled(true);
