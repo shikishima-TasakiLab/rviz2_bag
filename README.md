@@ -4,7 +4,7 @@ Record and play ROSBAG on RViz2.
 
 ![img_01](img/img_01.png)
 
-Verified to work with ros2 humble (2024/09/30).
+Verified to work with ros2 humble and iron (2024/10/01).
 
 ## NOTICE
 
