@@ -191,6 +191,9 @@
          <property name="itemsExpandable">
           <bool>false</bool>
          </property>
+         <property name="sortingEnabled">
+          <bool>true</bool>
+         </property>
          <attribute name="headerDefaultSectionSize">
           <number>200</number>
          </attribute>

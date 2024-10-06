@@ -2,6 +2,14 @@
 <ui version="4.0">
  <class>Player</class>
  <widget class="QWidget" name="Player">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>325</width>
+    <height>363</height>
+   </rect>
+  </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
@@ -312,6 +320,9 @@
      </property>
      <property name="itemsExpandable">
       <bool>false</bool>
+     </property>
+     <property name="sortingEnabled">
+      <bool>true</bool>
      </property>
      <attribute name="headerDefaultSectionSize">
       <number>200</number>
