@@ -8,7 +8,7 @@ namespace rviz2_bag
   {
   public:
     UneditableDelegate(QObject *parent = nullptr) : QStyledItemDelegate(parent) {}
-    virtual QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
+    virtual QWidget *createEditor(QWidget*, const QStyleOptionViewItem&, const QModelIndex&) const
     {
       return nullptr;
     }
