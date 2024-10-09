@@ -193,23 +193,33 @@ namespace rviz2_bag
 
   void RViz2Bag_Player::pbtn__rosbag_open__clicked()
   {
-    // Open ROSBAG dir
-    QString dir = QFileDialog::getExistingDirectory(this, tr("Open ROSBAG"), QDir::homePath(), QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-    ui_player_->ledit__rosbag_dir->setText(dir);
 
-    storage_options_ = std::make_unique<rosbag2_storage::StorageOptions>();
-    storage_options_->uri = dir.toLocal8Bit().constData();
-    storage_options_->storage_id = "";
-    storage_options_->storage_config_uri = "";
+    // Open ROSBAG dir
+    QString open_dir = ui_player_->ledit__rosbag_dir->text();
+    if (open_dir.size() == 0)
+      open_dir = QDir::homePath();
+    else {
+      QDir tmp_dir(open_dir);
+      tmp_dir.cdUp();
+      open_dir = tmp_dir.path();
+    }
+    QString dir = QFileDialog::getExistingDirectory(this, tr("Open ROSBAG"), open_dir, QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    std::string dir_std = dir.toLocal8Bit().constData();
 
     // Find metadata
     rosbag2_storage::MetadataIo metadata_io;
-    if (metadata_io.metadata_file_exists(storage_options_->uri) == false)
+    if (metadata_io.metadata_file_exists(dir_std) == false)
     {
-      ui_player_->ledit__rosbag_dir->setText(QString("Error: metadata not found."));
+      QMessageBox::warning(this, "rviz2_bag::Player", "The specified directory is not a ROSBAG directory.\nMetadata not found.");
       return;
     }
 
+    storage_options_ = std::make_unique<rosbag2_storage::StorageOptions>();
+    storage_options_->uri = dir_std;
+    storage_options_->storage_id = "";
+    storage_options_->storage_config_uri = "";
+
+    ui_player_->ledit__rosbag_dir->setText(dir);
     metadata_ = std::make_unique<rosbag2_storage::BagMetadata>(metadata_io.read_metadata(storage_options_->uri));
 
     // Set elapsed time

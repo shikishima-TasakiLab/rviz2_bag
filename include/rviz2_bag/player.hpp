@@ -15,6 +15,7 @@
 
 #include <QtCore/QDir>
 #include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMessageBox>
 
 #include "rviz2_bag/rosbag2_transport/player.hpp"
 #include "ui_player.h"
