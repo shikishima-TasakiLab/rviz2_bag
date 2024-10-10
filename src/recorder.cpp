@@ -8,7 +8,7 @@ namespace rviz2_bag
   {
   public:
     UneditableDelegate(QObject *parent = nullptr) : QStyledItemDelegate(parent) {}
-    virtual QWidget *createEditor(QWidget*, const QStyleOptionViewItem&, const QModelIndex&) const
+    virtual QWidget *createEditor(QWidget *, const QStyleOptionViewItem &, const QModelIndex &) const
     {
       return nullptr;
     }
@@ -422,7 +422,18 @@ namespace rviz2_bag
 
   void RViz2Bag_Recorder::pbtn__output_dir__clicked()
   {
-    QString str_dir = QFileDialog::getExistingDirectory(this, tr("Open ROSBAG"), QDir::homePath(), QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    QString open_dir = ui_recorder_->ledit__output_dir->text();
+    if (open_dir.size() < 1)
+      open_dir = QDir::homePath();
+    else
+    {
+      QDir tmp_dir(open_dir);
+      tmp_dir.cdUp();
+      open_dir = tmp_dir.path();
+    }
+    QString str_dir = QFileDialog::getExistingDirectory(this, tr("Output directory"), open_dir, QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    if (str_dir.size() < 1)
+      return;
     QDir dir(str_dir);
     if (dir.exists() == false)
       return;
