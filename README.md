@@ -4,13 +4,13 @@ Record and play ROSBAG on RViz2.
 
 |Player|Recorder|
 | :--- | :--- |
-|![Player](img/player.jpg)|![Recorder](img/recorder.jpg)|
+|![Player](rviz2_bag/img/player.jpg)|![Recorder](rviz2_bag/img/recorder.jpg)|
 
 Verified to work with ros2 humble and iron (2024/10/01).
 
 ## Player
 
-![Player](img/player.jpg)
+![Player](rviz2_bag/img/player.jpg)
 
 The following table describes the functionality of the Player UI and its correspondence with the standard `ros2 bag play` CLI.
 
@@ -20,11 +20,11 @@ The following table describes the functionality of the Player UI and its corresp
 | **/clock** | Publish to `/clock` at a specific frequency (Hz). | `--clock [HZ]` |
 | **Rate** | Set the playback speed multiplier. | `-r RATE` / `--rate RATE` |
 | **Loop** | Enable continuous looping of the bag file. | `-l` / `--loop` |
-| <img src="src/icons/play.svg" style="height: 1em;" /> **Play** | Start playing the selected bag. | `ros2 bag play <bag_path>` |
-| <img src="src/icons/pause.svg" style="height: 1em;" /> **Pause** | Pause playback. | `Space` |
-| <img src="src/icons/stop.svg" style="height: 1em;" /> **Stop** | Stop playback. | `Ctrl + C` |
-| <img src="src/icons/backward.svg" style="height: 1em;" /> **Rewind** | Reset playback to the beginning. | - |
-| <img src="src/icons/next.svg" style="height: 1em;" /> **Next Message** | Step forward to the next message. | `.` (while paused) |
+| <img src="rviz2_bag/src/icons/play.svg" style="height: 1em;" /> **Play** | Start playing the selected bag. | `ros2 bag play <bag_path>` |
+| <img src="rviz2_bag/src/icons/pause.svg" style="height: 1em;" /> **Pause** | Pause playback. | `Space` |
+| <img src="rviz2_bag/src/icons/stop.svg" style="height: 1em;" /> **Stop** | Stop playback. | `Ctrl + C` |
+| <img src="rviz2_bag/src/icons/backward.svg" style="height: 1em;" /> **Rewind** | Reset playback to the beginning. | - |
+| <img src="rviz2_bag/src/icons/next.svg" style="height: 1em;" /> **Next Message** | Step forward to the next message. | `.` (while paused) |
 | **Spinbox / Slider** | Adjust the current playback position. | `--start-offset <SECONDS>` |
 | **Select All** | Enable all topics for publishing. | - |
 | **Deselect All** | Disable all topics. | - |
@@ -34,8 +34,8 @@ The following table describes the functionality of the Player UI and its corresp
 
 <table>
     <tr>
-        <td><img src="img/recorder.jpg" /></td>
-        <td><img src="img/recorder_settings.jpg" /></td>
+        <td><img src="rviz2_bag/img/recorder.jpg" /></td>
+        <td><img src="rviz2_bag/img/recorder_settings.jpg" /></td>
     </tr>
 </table>
 
@@ -47,13 +47,13 @@ The following table describes the functionality of the Recorder UI and its corre
 | :--- | :--- | :--- |
 | **Output dir** | Output directory | `-o OUTPUT`, `--output OUTPUT` |
 | **Name** | The name of the ROSBAG to output. You can specify the prefix, whether to include a timestamp, and the suffix. | `-o OUTPUT`, `--output OUTPUT` |
-| <img src="src/icons/record.svg" style="height: 1em;" /> **Record** | Start recording. | `ros2 bag record` |
-| <img src="src/icons/pause.svg" style="height: 1em;" /> **Pause** | Pause recording. | `Space` |
-| <img src="src/icons/stop.svg" style="height: 1em;" /> **Stop** | Stop recording. | `Ctrl + C` |
+| <img src="rviz2_bag/src/icons/record.svg" style="height: 1em;" /> **Record** | Start recording. | `ros2 bag record` |
+| <img src="rviz2_bag/src/icons/pause.svg" style="height: 1em;" /> **Pause** | Pause recording. | `Space` |
+| <img src="rviz2_bag/src/icons/stop.svg" style="height: 1em;" /> **Stop** | Stop recording. | `Ctrl + C` |
 | **use Sim Time** | Use simulation time for message timestamps by subscribing to the /clock topic. Until first /clock message is received, no messages will be written to bag. | `--use-sim-time` |
 | **Select All** | Enable all topics for recording. | - |
 | **Deselect All** | Disable all topics. | - |
-| <img src="src/icons/refresh.svg" style="height: 1em;" /> **Reload** | Reload the list of topics. | - |
+| <img src="rviz2_bag/src/icons/refresh.svg" style="height: 1em;" /> **Reload** | Reload the list of topics. | - |
 | **Topic Checkbox** | Toggle specific topics to record. | `[topics]` |
 
 ### Setting tab
