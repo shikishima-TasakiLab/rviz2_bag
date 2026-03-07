@@ -277,6 +277,20 @@ namespace rviz2_bag
   void RViz2Bag_Recorder::onInitialize()
   {
     nh_ = getDisplayContext()->getRosNodeAbstraction().lock()->get_raw_node();
+    logger_ = std::make_shared<rclcpp::Logger>(nh_->get_logger().get_child(getName().toStdString()));
+
+    service_record_ = nh_->create_service<rviz2_bag_interfaces::srv::Command>(
+      std::string(nh_->get_name()) + "/rviz2_bag/" + getName().toStdString() + "/record",
+      std::bind(&RViz2Bag_Recorder::callback__srv__record, this, std::placeholders::_1, std::placeholders::_2)
+    );
+    service_pause_ = nh_->create_service<rviz2_bag_interfaces::srv::Command>(
+      std::string(nh_->get_name()) + "/rviz2_bag/" + getName().toStdString() + "/pause",
+      std::bind(&RViz2Bag_Recorder::callback__srv__pause, this, std::placeholders::_1, std::placeholders::_2)
+    );
+    service_stop_ = nh_->create_service<rviz2_bag_interfaces::srv::Command>(
+      std::string(nh_->get_name()) + "/rviz2_bag/" + getName().toStdString() + "/stop",
+      std::bind(&RViz2Bag_Recorder::callback__srv__stop, this, std::placeholders::_1, std::placeholders::_2)
+    );
   }
 
   void RViz2Bag_Recorder::save(rviz_common::Config config) const
@@ -450,12 +464,16 @@ namespace rviz2_bag
     ui_recorder_->pbtn__topic_refresh->setEnabled(true);
   }
 
-  void RViz2Bag_Recorder::pbtn__record__clicked()
+  bool RViz2Bag_Recorder::pbtn__record__clicked()
   {
+    if (ui_recorder_->pbtn__record->isEnabled() == false)
+    {
+      return false;
+    }
     if (bag_recorder_ == nullptr)
     {
       if (record() == false)
-        return;
+        return false;
     }
     else
     {
@@ -475,10 +493,17 @@ namespace rviz2_bag
     ui_recorder_->pbtn__select_all->setEnabled(false);
     ui_recorder_->pbtn__deselect_all->setEnabled(false);
     ui_recorder_->pbtn__topic_refresh->setEnabled(false);
+
+    return true;
   }
 
-  void RViz2Bag_Recorder::pbtn__pause__clicked()
+  bool RViz2Bag_Recorder::pbtn__pause__clicked()
   {
+    if (ui_recorder_->pbtn__pause->isEnabled() == false)
+    {
+      return false;
+    }
+
     bag_recorder_->pause();
 
     ui_recorder_->tab_2->setEnabled(false);
@@ -494,10 +519,17 @@ namespace rviz2_bag
     ui_recorder_->pbtn__select_all->setEnabled(false);
     ui_recorder_->pbtn__deselect_all->setEnabled(false);
     ui_recorder_->pbtn__topic_refresh->setEnabled(false);
+
+    return true;
   }
 
-  void RViz2Bag_Recorder::pbtn__stop__clicked()
+  bool RViz2Bag_Recorder::pbtn__stop__clicked()
   {
+    if (ui_recorder_->pbtn__stop->isEnabled() == false)
+    {
+      return false;
+    }
+
     stop();
 
     ui_recorder_->tab_2->setEnabled(true);
@@ -513,6 +545,8 @@ namespace rviz2_bag
     ui_recorder_->pbtn__select_all->setEnabled(true);
     ui_recorder_->pbtn__deselect_all->setEnabled(true);
     ui_recorder_->pbtn__topic_refresh->setEnabled(true);
+    
+    return true;
   }
 
   void RViz2Bag_Recorder::pbtn__select_all__clicked()
@@ -616,14 +650,12 @@ namespace rviz2_bag
         if (rosbag_dir.exists() == true)
         {
           RCLCPP_ERROR_STREAM(
-              nh_->get_logger(),
-              "[rviz2_bag] Output folder '" << storage_options_->uri << "' already exists.");
+              *logger_,
+              "Output folder '" << storage_options_->uri << "' already exists.");
           return false;
         }
 
-        RCLCPP_DEBUG_STREAM(
-            nh_->get_logger(),
-            "[rviz2_bag] " << storage_options_->uri);
+        RCLCPP_DEBUG_STREAM(*logger_, storage_options_->uri);
       }
 
       storage_options_->storage_id = combo_setting__storage_->currentText().toLocal8Bit().constData();
@@ -651,18 +683,13 @@ namespace rviz2_bag
           {
             std::string topic = item->text(0).toLocal8Bit().constData();
             record_options_->topics.push_back(topic);
-            RCLCPP_DEBUG_STREAM(
-                nh_->get_logger(),
-                "[rviz2_bag] " << topic);
+            RCLCPP_DEBUG_STREAM(*logger_, topic);
           }
         }
 
         if (record_options_->topics.size() < 1)
         {
-          RCLCPP_ERROR_STREAM(
-              nh_->get_logger(),
-              "[rviz2_bag] "
-              "Invalid choice: Must specify topic(s).");
+          RCLCPP_ERROR_STREAM(*logger_, "Invalid choice: Must specify topic(s).");
           return false;
         }
       }
@@ -687,8 +714,7 @@ namespace rviz2_bag
         if ((compression_mode == "none") && (compression_format.isEmpty() == false))
         {
           RCLCPP_ERROR_STREAM(
-              nh_->get_logger(),
-              "[rviz2_bag] "
+              *logger_,
               "Invalid choice "
               "(Compression Mode & Compression Format): "
               "Cannot specify compression format without a compression mode.");
@@ -698,8 +724,7 @@ namespace rviz2_bag
         if ((storage_options_->storage_id == "mcap") && (compression_mode == "message"))
         {
           RCLCPP_ERROR_STREAM(
-              nh_->get_logger(),
-              "[rviz2_bag] "
+              *logger_,
               "Invalid choice "
               "(Storage & Compression Mode): "
               "compression_mode 'message' is not supported by the MCAP storage plugin. You can enable chunk compression by setting `compression: 'Zstd'` in storage config.");
@@ -710,8 +735,7 @@ namespace rviz2_bag
         if (compression_queue_size < 0)
         {
           RCLCPP_ERROR_STREAM(
-              nh_->get_logger(),
-              "[rviz2_bag] "
+              *logger_,
               "Compression queue size must be at least 0.");
           return false;
         }
@@ -731,8 +755,8 @@ namespace rviz2_bag
       if (record_options_->is_discovery_disabled && record_options_->use_sim_time)
       {
         RCLCPP_ERROR_STREAM(
-            nh_->get_logger(),
-            "[rviz2_bag] 'use Sim Time' and 'No Discovery' both set, but are incompatible settings. "
+            *logger_,
+            "'use Sim Time' and 'No Discovery' both set, but are incompatible settings. "
             "The /clock topic needs to be discovered to record with sim time.");
         return false;
       }
@@ -740,7 +764,7 @@ namespace rviz2_bag
 
     auto writer = rosbag2_transport::ReaderWriterFactory::make_writer(*record_options_);
     bag_recorder_ = std::make_shared<rosbag2_transport::Recorder>(
-        std::move(writer), *storage_options_, *record_options_, nh_);
+        std::move(writer), *storage_options_, *record_options_, nh_, logger_);
 
     // spin_thread_ = std::make_unique<std::thread>([this]()
     //                                              { this->bag_recorder_->record(); });
@@ -759,6 +783,33 @@ namespace rviz2_bag
       bag_recorder_->stop();
       bag_recorder_.reset();
     }
+  }
+
+  void RViz2Bag_Recorder::callback__srv__record(
+    const rviz2_bag_interfaces::srv::Command::Request::SharedPtr request,
+    rviz2_bag_interfaces::srv::Command::Response::SharedPtr response
+  ) {
+    (void)request;
+
+    response->result = pbtn__record__clicked();
+  }
+
+  void RViz2Bag_Recorder::callback__srv__pause(
+    const rviz2_bag_interfaces::srv::Command::Request::SharedPtr request,
+    rviz2_bag_interfaces::srv::Command::Response::SharedPtr response
+  ) {
+    (void)request;
+
+    response->result = pbtn__pause__clicked();
+  }
+
+  void RViz2Bag_Recorder::callback__srv__stop(
+    const rviz2_bag_interfaces::srv::Command::Request::SharedPtr request,
+    rviz2_bag_interfaces::srv::Command::Response::SharedPtr response
+  ) {
+    (void)request;
+
+    response->result = pbtn__stop__clicked();
   }
 
 } // namespace rviz2_bag

@@ -13,6 +13,7 @@ find_package(rviz_common REQUIRED)
 find_package(rosbag2_interfaces REQUIRED)
 find_package(rosbag2_storage REQUIRED)
 find_package(rosbag2_transport REQUIRED)
+find_package(rviz2_bag_interfaces)
 find_package(Qt5 ${rviz_QT_VERSION} REQUIRED Core Widgets)
 macro(qt_wrap_ui)
   qt5_wrap_ui(${ARGN})
@@ -61,6 +62,7 @@ ament_target_dependencies(
   "rosbag2_interfaces"
   "rosbag2_storage"
   "rosbag2_transport"
+  "rviz2_bag_interfaces"
   "Qt5"
 )
 
