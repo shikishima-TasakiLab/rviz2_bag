@@ -12,6 +12,8 @@ Verified to work with ros2 humble and iron (2024/10/01).
 
 ![Player](rviz2_bag/img/player.jpg)
 
+### Panel
+
 The following table describes the functionality of the Player UI and its correspondence with the standard `ros2 bag play` CLI.
 
 | GUI Control | Description | Equivalent `ros2 bag play` Option/Key |
@@ -30,6 +32,14 @@ The following table describes the functionality of the Player UI and its corresp
 | **Deselect All** | Disable all topics. | - |
 | **Topic Checkbox** | Toggle specific topics to publish. | `--topics <TOPICS>` |
 
+### Service
+
+| Server | Request and Response Structure |
+| :--- | :--- |
+| **/rviz/rviz2_bag/(Panel Name)/play** | [rviz2_bag_interfaces/srv/Command](rviz2_bag_interfaces/srv/Command.srv) |
+| **/rviz/rviz2_bag/(Panel Name)/pause** | [rviz2_bag_interfaces/srv/Command](rviz2_bag_interfaces/srv/Command.srv) |
+| **/rviz/rviz2_bag/(Panel Name)/stop** | [rviz2_bag_interfaces/srv/Command](rviz2_bag_interfaces/srv/Command.srv) |
+
 ## Recorder
 
 <table>
@@ -39,9 +49,11 @@ The following table describes the functionality of the Player UI and its corresp
     </tr>
 </table>
 
+### Panel
+
 The following table describes the functionality of the Recorder UI and its correspondence with the standard `ros2 bag record` CLI.
 
-### Record tab
+#### Record tab
 
 | GUI Control | Description | Equivalent `ros2 bag record` Option/Key |
 | :--- | :--- | :--- |
@@ -56,7 +68,7 @@ The following table describes the functionality of the Recorder UI and its corre
 | <img src="rviz2_bag/src/icons/refresh.svg" style="height: 1em;" /> **Reload** | Reload the list of topics. | - |
 | **Topic Checkbox** | Toggle specific topics to record. | `[topics]` |
 
-### Setting tab
+#### Setting tab
 
 | GUI Control | Description | Equivalent `ros2 bag record` Option/Key |
 | :--- | :--- | :--- |
@@ -73,6 +85,14 @@ The following table describes the functionality of the Recorder UI and its corre
 | Compression Threads | Number of files or messages that may be compressed in parallel. Default is 0, which will be interpreted as the number of CPU cores. | `--compression-threads COMPRESSION_THREADS` |
 | Log Level | Logging level. | `--log-level {debug,info,warn,error,fatal}` |
 | Name Delimiter | The delimiter to insert between the prefix, timestamp, and suffix of the ROSBAG name to output. | - |
+
+### Service
+
+| Server | Request and Response Structure |
+| :--- | :--- |
+| **/rviz/rviz2_bag/(Panel Name)/record** | [rviz2_bag_interfaces/srv/Command](rviz2_bag_interfaces/srv/Command.srv) |
+| **/rviz/rviz2_bag/(Panel Name)/pause** | [rviz2_bag_interfaces/srv/Command](rviz2_bag_interfaces/srv/Command.srv) |
+| **/rviz/rviz2_bag/(Panel Name)/stop** | [rviz2_bag_interfaces/srv/Command](rviz2_bag_interfaces/srv/Command.srv) |
 
 ## NOTICE
 

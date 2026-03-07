@@ -279,18 +279,46 @@ namespace rviz2_bag
     nh_ = getDisplayContext()->getRosNodeAbstraction().lock()->get_raw_node();
     logger_ = std::make_shared<rclcpp::Logger>(nh_->get_logger().get_child(getName().toStdString()));
 
-    service_record_ = nh_->create_service<rviz2_bag_interfaces::srv::Command>(
-      std::string(nh_->get_name()) + "/rviz2_bag/" + getName().toStdString() + "/record",
-      std::bind(&RViz2Bag_Recorder::callback__srv__record, this, std::placeholders::_1, std::placeholders::_2)
-    );
-    service_pause_ = nh_->create_service<rviz2_bag_interfaces::srv::Command>(
-      std::string(nh_->get_name()) + "/rviz2_bag/" + getName().toStdString() + "/pause",
-      std::bind(&RViz2Bag_Recorder::callback__srv__pause, this, std::placeholders::_1, std::placeholders::_2)
-    );
-    service_stop_ = nh_->create_service<rviz2_bag_interfaces::srv::Command>(
-      std::string(nh_->get_name()) + "/rviz2_bag/" + getName().toStdString() + "/stop",
-      std::bind(&RViz2Bag_Recorder::callback__srv__stop, this, std::placeholders::_1, std::placeholders::_2)
-    );
+    auto service_names_and_types = nh_->get_service_names_and_types();
+
+    {
+      std::string server_name = std::string(nh_->get_name()) + "/rviz2_bag/" + getName().toStdString() + "/record";
+
+      if (service_names_and_types.count(server_name) > 0) {
+        RCLCPP_WARN_STREAM(*logger_, "The service already exists: " << server_name);
+      } else {
+        service_record_ = nh_->create_service<rviz2_bag_interfaces::srv::Command>(
+          server_name,
+          std::bind(&RViz2Bag_Recorder::callback__srv__record, this, std::placeholders::_1, std::placeholders::_2)
+        );
+      }
+    }
+
+    {
+      std::string server_name = std::string(nh_->get_name()) + "/rviz2_bag/" + getName().toStdString() + "/pause";
+
+      if (service_names_and_types.count(server_name) > 0) {
+        RCLCPP_WARN_STREAM(*logger_, "The service already exists: " << server_name);
+      } else {
+        service_pause_ = nh_->create_service<rviz2_bag_interfaces::srv::Command>(
+          server_name,
+          std::bind(&RViz2Bag_Recorder::callback__srv__pause, this, std::placeholders::_1, std::placeholders::_2)
+        );
+      }
+    }
+
+    {
+      std::string server_name = std::string(nh_->get_name()) + "/rviz2_bag/" + getName().toStdString() + "/stop";
+
+      if (service_names_and_types.count(server_name) > 0) {
+        RCLCPP_WARN_STREAM(*logger_, "The service already exists: " << server_name);
+      } else {
+        service_stop_ = nh_->create_service<rviz2_bag_interfaces::srv::Command>(
+          server_name,
+          std::bind(&RViz2Bag_Recorder::callback__srv__stop, this, std::placeholders::_1, std::placeholders::_2)
+        );
+      }
+    }
   }
 
   void RViz2Bag_Recorder::save(rviz_common::Config config) const
