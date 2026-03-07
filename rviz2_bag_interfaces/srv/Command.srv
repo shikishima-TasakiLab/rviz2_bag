@@ -1,0 +1,4 @@
+# No request args
+---
+# result: True: Success, False: Error
+bool result

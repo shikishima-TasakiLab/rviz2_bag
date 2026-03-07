@@ -46,16 +46,17 @@ Recorder::Recorder(
   std::shared_ptr<rosbag2_cpp::Writer> writer,
   const rosbag2_storage::StorageOptions & storage_options,
   const rosbag2_transport::RecordOptions & record_options,
-  const rclcpp::Node::SharedPtr node_handle
+  const rclcpp::Node::SharedPtr node_handle,
+  const std::shared_ptr<rclcpp::Logger> logger
 )
 : writer_(std::move(writer)),
   storage_options_(storage_options),
   record_options_(record_options),
   stop_discovery_(record_options_.is_discovery_disabled),
+  nh_(node_handle),
+  logger_(logger),
   paused_(record_options.start_paused)
 {
-  nh_ = node_handle;
-
   if (record_options_.use_sim_time && record_options_.is_discovery_disabled) {
     throw std::runtime_error(
             "use_sim_time and is_discovery_disabled both set, but are incompatible settings. "
@@ -82,7 +83,7 @@ void Recorder::stop()
     auto status = discovery_future_.wait_for(2 * record_options_.topic_polling_interval);
     if (status != std::future_status::ready) {
       RCLCPP_ERROR_STREAM(
-        nh_->get_logger(),
+        *logger_,
         "discovery_future_.wait_for(" << record_options_.topic_polling_interval.count() <<
           ") return status: " << (status == std::future_status::timeout ? "timeout" : "deferred"));
     }
@@ -99,7 +100,7 @@ void Recorder::stop()
   if (event_publisher_thread_.joinable()) {
     event_publisher_thread_.join();
   }
-  RCLCPP_INFO(nh_->get_logger(), "Recording stopped");
+  RCLCPP_INFO(*logger_, "Recording stopped");
 }
 
 void Recorder::record()
@@ -148,7 +149,7 @@ void Recorder::record()
   writer_->add_event_callbacks(callbacks);
 
   serialization_format_ = record_options_.rmw_serialization_format;
-  RCLCPP_INFO(nh_->get_logger(), "Listening for topics...");
+  RCLCPP_INFO(*logger_, "Listening for topics...");
   if (!record_options_.use_sim_time) {
     subscribe_topics(get_requested_or_available_topics());
   }
@@ -158,16 +159,15 @@ void Recorder::record()
   }
 
   if (record_options_.start_paused) {
-    RCLCPP_INFO(
-      nh_->get_logger(), "Waiting for recording.");
+    RCLCPP_INFO(*logger_, "Waiting for recording.");
   } else {
-    RCLCPP_INFO(nh_->get_logger(), "Recording...");
+    RCLCPP_INFO(*logger_, "Recording...");
   }
 }
 
 void Recorder::event_publisher_thread_main()
 {
-  RCLCPP_INFO(nh_->get_logger(), "Event publisher thread: Starting");
+  RCLCPP_INFO(*logger_, "Event publisher thread: Starting");
   while (!event_publisher_thread_should_exit_.load()) {
     std::unique_lock<std::mutex> lock(event_publisher_thread_mutex_);
     event_publisher_thread_wake_cv_.wait(
@@ -184,16 +184,16 @@ void Recorder::event_publisher_thread_main()
         split_event_pub_->publish(message);
       } catch (const std::exception & e) {
         RCLCPP_ERROR_STREAM(
-          nh_->get_logger(),
+          *logger_,
           "Failed to publish message on '/events/write_split' topic. \nError: " << e.what());
       } catch (...) {
         RCLCPP_ERROR_STREAM(
-          nh_->get_logger(),
+          *logger_,
           "Failed to publish message on '/events/write_split' topic.");
       }
     }
   }
-  RCLCPP_INFO(nh_->get_logger(), "Event publisher thread: Exiting");
+  RCLCPP_INFO(*logger_, "Event publisher thread: Exiting");
 }
 
 bool Recorder::event_publisher_thread_should_wake()
@@ -209,13 +209,13 @@ const rosbag2_cpp::Writer & Recorder::get_writer_handle()
 void Recorder::pause()
 {
   paused_.store(true);
-  RCLCPP_INFO_STREAM(nh_->get_logger(), "Pausing recording.");
+  RCLCPP_INFO_STREAM(*logger_, "Pausing recording.");
 }
 
 void Recorder::resume()
 {
   paused_.store(false);
-  RCLCPP_INFO_STREAM(nh_->get_logger(), "Resuming recording.");
+  RCLCPP_INFO_STREAM(*logger_, "Resuming recording.");
 }
 
 void Recorder::toggle_paused()
@@ -236,16 +236,14 @@ void Recorder::topics_discovery()
 {
   // If using sim time - wait until /clock topic received before even creating subscriptions
   if (record_options_.use_sim_time) {
-    RCLCPP_INFO(
-      nh_->get_logger(),
-      "use_sim_time set, waiting for /clock before starting recording...");
+    RCLCPP_INFO(*logger_, "use_sim_time set, waiting for /clock before starting recording...");
     while (rclcpp::ok() && stop_discovery_ == false) {
       if (nh_->get_clock()->wait_until_started(record_options_.topic_polling_interval)) {
         break;
       }
     }
     if (nh_->get_clock()->started()) {
-      RCLCPP_INFO(nh_->get_logger(), "Sim time /clock found, starting recording.");
+      RCLCPP_INFO(*logger_, "Sim time /clock found, starting recording.");
     }
   }
   while (rclcpp::ok() && stop_discovery_ == false) {
@@ -260,15 +258,13 @@ void Recorder::topics_discovery()
       if (!record_options_.topics.empty() &&
         subscriptions_.size() == record_options_.topics.size())
       {
-        RCLCPP_INFO(
-          nh_->get_logger(),
-          "All requested topics are subscribed. Stopping discovery...");
+        RCLCPP_INFO(*logger_, "All requested topics are subscribed. Stopping discovery...");
         return;
       }
     } catch (const std::exception & e) {
-      RCLCPP_ERROR_STREAM(nh_->get_logger(), "Failure in topics discovery.\nError: " << e.what());
+      RCLCPP_ERROR_STREAM(*logger_, "Failure in topics discovery.\nError: " << e.what());
     } catch (...) {
-      RCLCPP_ERROR_STREAM(nh_->get_logger(), "Failure in topics discovery.");
+      RCLCPP_ERROR_STREAM(*logger_, "Failure in topics discovery.");
     }
     std::this_thread::sleep_for(record_options_.topic_polling_interval);
   }
@@ -320,9 +316,7 @@ void Recorder::subscribe_topic(const rosbag2_storage::TopicMetadata & topic)
   auto subscription = create_subscription(topic.name, topic.type, subscription_qos);
   if (subscription) {
     subscriptions_.insert({topic.name, subscription});
-    RCLCPP_INFO_STREAM(
-      nh_->get_logger(),
-      "Subscribed to topic '" << topic.name << "'");
+    RCLCPP_INFO_STREAM(*logger_, "Subscribed to topic '" << topic.name << "'");
   } else {
     writer_->remove_topic(topic);
     subscriptions_.erase(topic.name);
@@ -358,9 +352,7 @@ std::string Recorder::serialized_offered_qos_profiles_for_topic(const std::strin
 rclcpp::QoS Recorder::subscription_qos_for_topic(const std::string & topic_name) const
 {
   if (topic_qos_profile_overrides_.count(topic_name)) {
-    RCLCPP_INFO_STREAM(
-      nh_->get_logger(),
-      "Overriding subscription profile for " << topic_name);
+    RCLCPP_INFO_STREAM(*logger_, "Overriding subscription profile for " << topic_name);
     return topic_qos_profile_overrides_.at(topic_name);
   }
   return Rosbag2QoS::adapt_request_to_offers(
@@ -392,7 +384,7 @@ void Recorder::warn_if_new_qos_for_subscribed_topic(const std::string & topic_na
 
     if (incompatible_reliability) {
       RCLCPP_WARN_STREAM(
-        nh_->get_logger(),
+        *logger_,
         "A new publisher for subscribed topic " << topic_name << " "
           "was found offering RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT, "
           "but rosbag already subscribed requesting RMW_QOS_POLICY_RELIABILITY_RELIABLE. "
@@ -400,7 +392,7 @@ void Recorder::warn_if_new_qos_for_subscribed_topic(const std::string & topic_na
       topics_warned_about_incompatibility_.insert(topic_name);
     } else if (incompatible_durability) {
       RCLCPP_WARN_STREAM(
-        nh_->get_logger(),
+        *logger_,
         "A new publisher for subscribed topic " << topic_name << " "
           "was found offering RMW_QOS_POLICY_DURABILITY_VOLATILE, "
           "but rosbag2 already subscribed requesting RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL. "

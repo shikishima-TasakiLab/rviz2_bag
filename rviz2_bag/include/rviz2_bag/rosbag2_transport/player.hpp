@@ -30,6 +30,7 @@
 #include <moodycamel/readerwriterqueue.h>
 
 #include <rclcpp/node.hpp>
+#include <rclcpp/logger.hpp>
 #include <rclcpp/publisher.hpp>
 #include <rclcpp/qos.hpp>
 
@@ -62,7 +63,9 @@ public:
     std::unique_ptr<rosbag2_cpp::Reader> reader,
     const rosbag2_storage::StorageOptions & storage_options,
     const rosbag2_transport::PlayOptions & play_options,
-    const rclcpp::Node::SharedPtr node_handle);
+    const rclcpp::Node::SharedPtr node_handle,
+    const std::shared_ptr<rclcpp::Logger> logger
+  );
 
   ROSBAG2_TRANSPORT_PUBLIC
   virtual ~Player();
@@ -177,6 +180,8 @@ private:
 
 private:
   rclcpp::Node::SharedPtr nh_;
+  std::shared_ptr<rclcpp::Logger> logger_;
+
   bool clock_updated_enable_{true};
   bool no_stop_request_{true};
   rosbag2_storage::SerializedBagMessageSharedPtr peek_next_message_from_queue();

@@ -27,6 +27,7 @@
 
 #include <rclcpp/node.hpp>
 #include <rclcpp/qos.hpp>
+#include <rclcpp/logger.hpp>
 #include <rosbag2_cpp/writer.hpp>
 #include <rosbag2_interfaces/srv/snapshot.hpp>
 #include <rosbag2_interfaces/msg/write_split_event.hpp>
@@ -53,7 +54,8 @@ public:
     std::shared_ptr<rosbag2_cpp::Writer> writer,
     const rosbag2_storage::StorageOptions & storage_options,
     const rosbag2_transport::RecordOptions & record_options,
-    const rclcpp::Node::SharedPtr node_handle
+    const rclcpp::Node::SharedPtr node_handle,
+    const std::shared_ptr<rclcpp::Logger> logger
   );
 
   ROSBAG2_TRANSPORT_PUBLIC
@@ -139,6 +141,7 @@ private:
   void warn_if_new_qos_for_subscribed_topic(const std::string & topic_name);
 
   rclcpp::Node::SharedPtr nh_;
+  std::shared_ptr<rclcpp::Logger> logger_;
 
   std::future<void> discovery_future_;
   std::unordered_map<std::string, std::shared_ptr<rclcpp::GenericSubscription>> subscriptions_;
