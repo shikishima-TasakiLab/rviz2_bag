@@ -73,9 +73,7 @@ rclcpp::QoS publisher_qos_for_topic(
   using rosbag2_transport::Rosbag2QoS;
   auto qos_it = topic_qos_profile_overrides.find(topic.name);
   if (qos_it != topic_qos_profile_overrides.end()) {
-    RCLCPP_INFO_STREAM(
-      logger,
-      "[rviz2_bag] Overriding QoS profile for topic " << topic.name);
+    RCLCPP_INFO_STREAM(logger, "Overriding QoS profile for topic " << topic.name);
     return Rosbag2QoS{qos_it->second};
   } else if (topic.offered_qos_profiles.empty()) {
     return Rosbag2QoS{};
@@ -94,12 +92,14 @@ Player::Player(
   std::unique_ptr<rosbag2_cpp::Reader> reader,
   const rosbag2_storage::StorageOptions & storage_options,
   const rosbag2_transport::PlayOptions & play_options,
-  const rclcpp::Node::SharedPtr node_handle)
-: storage_options_(storage_options),
+  const rclcpp::Node::SharedPtr node_handle,
+  const std::shared_ptr<rclcpp::Logger> logger
+)
+: nh_(node_handle),
+  logger_(logger),
+  storage_options_(storage_options),
   play_options_(play_options)
 {
-  nh_ = node_handle;
-
   {
     std::lock_guard<std::mutex> lk(reader_mutex_);
     reader_ = std::move(reader);
@@ -112,8 +112,8 @@ Player::Player(
     // then add the offset to the starting time obtained from reader metadata
     if (play_options_.start_offset < 0) {
       RCLCPP_WARN_STREAM(
-        nh_->get_logger(),
-        "[rviz2_bag] Invalid start offset value: " <<
+        *logger_,
+        "Invalid start offset value: " <<
           RCUTILS_NS_TO_S(static_cast<double>(play_options_.start_offset)) <<
           ". Negative start offset ignored.");
     } else {
@@ -157,14 +157,13 @@ void Player::play()
     delay = play_options_.delay;
   } else {
     RCLCPP_WARN_STREAM(
-      nh_->get_logger(),
-      "[rviz2_bag] Invalid delay value: " << play_options_.delay.nanoseconds() << ". Delay is disabled.");
+      *logger_, "Invalid delay value: " << play_options_.delay.nanoseconds() << ". Delay is disabled.");
   }
 
   try {
     do {
       if (delay > rclcpp::Duration(0, 0)) {
-        RCLCPP_INFO_STREAM(nh_->get_logger(), "[rviz2_bag] Sleep " << delay.nanoseconds() << " ns");
+        RCLCPP_INFO_STREAM(*logger_, "Sleep " << delay.nanoseconds() << " ns");
         std::chrono::nanoseconds duration(delay.nanoseconds());
         std::this_thread::sleep_for(duration);
       }
@@ -183,7 +182,7 @@ void Player::play()
       }
     } while (rclcpp::ok() && no_stop_request_ && play_options_.loop);
   } catch (std::runtime_error & e) {
-    RCLCPP_ERROR(nh_->get_logger(), "[rviz2_bag] Failed to play: %s", e.what());
+    RCLCPP_ERROR_STREAM(*logger_, "Failed to play: " << e.what());
   }
   std::lock_guard<std::mutex> lk(ready_to_play_from_queue_mutex_);
   is_ready_to_play_from_queue_ = false;
@@ -198,20 +197,16 @@ void Player::play()
     for (auto pub : publishers_) {
       try {
         if (!pub.second->generic_publisher()->wait_for_all_acked(timeout)) {
-          RCLCPP_ERROR(
-            nh_->get_logger(),
-            "[rviz2_bag] "
-            "Timed out while waiting for all published messages to be acknowledged for topic %s",
-            pub.first.c_str());
+          RCLCPP_ERROR_STREAM(
+            *logger_,
+            "Timed out while waiting for all published messages to be acknowledged for topic " << 
+            pub.first);
         }
       } catch (std::exception & e) {
-        RCLCPP_ERROR(
-          nh_->get_logger(),
-          "[rviz2_bag] "
+        RCLCPP_ERROR_STREAM(
+          *logger_,
           "Exception occurred while waiting for all published messages to be acknowledged for "
-          "topic %s : %s",
-          pub.first.c_str(),
-          e.what());
+          "topic " << pub.first << " : " << e.what());
       }
     }
   }
@@ -223,21 +218,21 @@ void Player::pause()
 {
   clock_updated_enable_ = false;
   clock_->pause();
-  RCLCPP_INFO_STREAM(nh_->get_logger(), "[rviz2_bag] Pause");
+  RCLCPP_INFO_STREAM(*logger_, "Pause");
 }
 
 void Player::stop()
 {
   clock_updated_enable_ = false;
   no_stop_request_ = false;
-  RCLCPP_INFO_STREAM(nh_->get_logger(), "[rviz2_bag] Stop");
+  RCLCPP_INFO_STREAM(*logger_, "Stop");
 }
 
 void Player::resume()
 {
   clock_updated_enable_ = true;
   clock_->resume();
-  RCLCPP_INFO_STREAM(nh_->get_logger(), "[rviz2_bag] Resume");
+  RCLCPP_INFO_STREAM(*logger_, "Resume");
 }
 
 void Player::toggle_paused()
@@ -259,9 +254,9 @@ bool Player::set_rate(double rate)
 {
   bool ok = clock_->set_rate(rate);
   if (ok) {
-    RCLCPP_INFO_STREAM(nh_->get_logger(), "[rviz2_bag] Set rate to " << rate);
+    RCLCPP_INFO_STREAM(*logger_, "Set rate to " << rate);
   } else {
-    RCLCPP_WARN_STREAM(nh_->get_logger(), "[rviz2_bag] Failed to set rate to invalid value " << rate);
+    RCLCPP_WARN_STREAM(*logger_, "Failed to set rate to invalid value " << rate);
   }
   return ok;
 }
@@ -271,10 +266,10 @@ rosbag2_storage::SerializedBagMessageSharedPtr Player::peek_next_message_from_qu
   rosbag2_storage::SerializedBagMessageSharedPtr * message_ptr_ptr = message_queue_.peek();
   while (message_ptr_ptr == nullptr && !is_storage_completely_loaded() && rclcpp::ok() && no_stop_request_) {
     RCLCPP_WARN_THROTTLE(
-      nh_->get_logger(),
+      *logger_,
       *nh_->get_clock(),
       1000,
-      "[rviz2_bag] Message queue starved. Messages will be delayed. Consider "
+      "Message queue starved. Messages will be delayed. Consider "
       "increasing the --read-ahead-queue-size option.");
 
     std::this_thread::sleep_for(std::chrono::microseconds(100));
@@ -296,11 +291,11 @@ rosbag2_storage::SerializedBagMessageSharedPtr Player::peek_next_message_from_qu
 bool Player::play_next()
 {
   if (!clock_->is_paused()) {
-    RCLCPP_WARN_STREAM(nh_->get_logger(), "[rviz2_bag] Called play next, but not in paused state.");
+    RCLCPP_WARN_STREAM(*logger_, "Called play next, but not in paused state.");
     return false;
   }
 
-  RCLCPP_INFO_STREAM(nh_->get_logger(), "[rviz2_bag] Playing next message.");
+  RCLCPP_INFO_STREAM(*logger_, "Playing next message.");
 
   // Temporary take over playback from play_messages_from_queue()
   std::lock_guard<std::mutex> main_play_loop_lk(skip_message_in_main_play_loop_mutex_);
@@ -468,8 +463,7 @@ void Player::prepare_publishers()
       static_cast<uint64_t>(RCUTILS_S_TO_NS(1) / play_options_.clock_publish_frequency));
     // NOTE: PlayerClock does not own this publisher because rosbag2_cpp
     // should not own transport-based functionality
-    clock_publisher_ = nh_->create_publisher<rosgraph_msgs::msg::Clock>(
-      "/clock", rclcpp::ClockQoS());
+    clock_publisher_ = nh_->create_publisher<rosgraph_msgs::msg::Clock>("/clock", rclcpp::ClockQoS());
     clock_publish_timer_ = nh_->create_wall_timer(
       publish_period, [this]() {
         auto msg = rosgraph_msgs::msg::Clock();
@@ -499,9 +493,7 @@ void Player::prepare_publishers()
       }
     }
 
-    auto topic_qos = publisher_qos_for_topic(
-      topic, topic_qos_profile_overrides_,
-      nh_->get_logger());
+    auto topic_qos = publisher_qos_for_topic(topic, topic_qos_profile_overrides_, *logger_);
     try {
       std::shared_ptr<rclcpp::GenericPublisher> pub =
         nh_->create_generic_publisher(topic.name, topic.type, topic_qos);
@@ -517,9 +509,7 @@ void Player::prepare_publishers()
     } catch (const std::runtime_error & e) {
       // using a warning log seems better than adding a new option
       // to ignore some unknown message type library
-      RCLCPP_WARN(
-        nh_->get_logger(),
-        "[rviz2_bag] Ignoring a topic '%s', reason: %s.", topic.name.c_str(), e.what());
+      RCLCPP_WARN_STREAM(*logger_, "Ignoring a topic '" << topic.name << "', reason: " << e.what() << ".");
     }
   }
 
@@ -529,10 +519,8 @@ void Player::prepare_publishers()
       topic_without_support_acked.end() - 2,
       topic_without_support_acked.end());
 
-    RCLCPP_WARN(
-      nh_->get_logger(),
-      "[rviz2_bag] --wait-for-all-acked is invalid for the below topics since reliability of QOS is "
-      "BestEffort.\n%s", topic_without_support_acked.c_str());
+    RCLCPP_WARN_STREAM(*logger_, "--wait-for-all-acked is invalid for the below topics since reliability of QOS is "
+      "BestEffort." << std::endl << topic_without_support_acked);
   }
 
   // Create a publisher and callback for when encountering a split in the input
@@ -560,8 +548,8 @@ bool Player::publish_message(rosbag2_storage::SerializedBagMessageSharedPtr mess
       message_published = true;
     } catch (const std::exception & e) {
       RCLCPP_ERROR_STREAM(
-        nh_->get_logger(), "[rviz2_bag] Failed to publish message on '" << message->topic_name <<
-          "' topic. \nError: %s" << e.what());
+        *logger_, "Failed to publish message on '" << message->topic_name <<
+          "' topic. " << std::endl << "Error: %s" << e.what());
     }
   }
   return message_published;

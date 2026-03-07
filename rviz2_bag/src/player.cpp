@@ -83,6 +83,48 @@ namespace rviz2_bag
   void RViz2Bag_Player::onInitialize()
   {
     nh_ = getDisplayContext()->getRosNodeAbstraction().lock()->get_raw_node();
+    logger_ = std::make_shared<rclcpp::Logger>(nh_->get_logger().get_child(getName().toStdString()));
+
+    auto service_names_and_types = nh_->get_service_names_and_types();
+
+    {
+      std::string server_name = std::string(nh_->get_name()) + "/rviz2_bag/" + getName().toStdString() + "/play";
+
+      if (service_names_and_types.count(server_name) > 0) {
+        RCLCPP_WARN_STREAM(*logger_, "The service already exists: " << server_name);
+      } else {
+        service_play_ = nh_->create_service<rviz2_bag_interfaces::srv::Command>(
+          server_name,
+          std::bind(&RViz2Bag_Player::callback__srv__play, this, std::placeholders::_1, std::placeholders::_2)
+        );
+      }
+    }
+
+    {
+      std::string server_name = std::string(nh_->get_name()) + "/rviz2_bag/" + getName().toStdString() + "/pause";
+
+      if (service_names_and_types.count(server_name) > 0) {
+        RCLCPP_WARN_STREAM(*logger_, "The service already exists: " << server_name);
+      } else {
+        service_pause_ = nh_->create_service<rviz2_bag_interfaces::srv::Command>(
+          server_name,
+          std::bind(&RViz2Bag_Player::callback__srv__pause, this, std::placeholders::_1, std::placeholders::_2)
+        );
+      }
+    }
+
+    {
+      std::string server_name = std::string(nh_->get_name()) + "/rviz2_bag/" + getName().toStdString() + "/stop";
+
+      if (service_names_and_types.count(server_name) > 0) {
+        RCLCPP_WARN_STREAM(*logger_, "The service already exists: " << server_name);
+      } else {
+        service_stop_ = nh_->create_service<rviz2_bag_interfaces::srv::Command>(
+          server_name,
+          std::bind(&RViz2Bag_Player::callback__srv__stop, this, std::placeholders::_1, std::placeholders::_2)
+        );
+      }
+    }
   }
 
   void RViz2Bag_Player::save(rviz_common::Config config) const
@@ -306,7 +348,7 @@ namespace rviz2_bag
     }
     if (play_options.topics_to_filter.size() < 1)
     {
-      RCLCPP_INFO_STREAM(nh_->get_logger(), "[rviz2_bag] No topic selected.");
+      RCLCPP_INFO_STREAM(*logger_, "No topic selected.");
       return false;
     }
 
@@ -326,7 +368,7 @@ namespace rviz2_bag
         std::move(reader),
         *storage_options_,
         play_options,
-        nh_);
+        nh_, logger_);
 
     connect(
         bag_player_.get(),
@@ -361,12 +403,15 @@ namespace rviz2_bag
     }
   }
 
-  void RViz2Bag_Player::pbtn__rosbag_play__clicked()
+  bool RViz2Bag_Player::pbtn__rosbag_play__clicked()
   {
+    if (ui_player_->pbtn__rosbag_play->isEnabled() == false) {
+      return false;
+    }
     if (bag_player_ == nullptr)
     {
       if (play() == false)
-        return;
+        return false;
     }
     else
     {
@@ -389,10 +434,16 @@ namespace rviz2_bag
     ui_player_->pbtn__play_next->setEnabled(false);
     ui_player_->pbtn__select_all->setEnabled(false);
     ui_player_->pbtn__deselect_all->setEnabled(false);
+
+    return true;
   }
 
-  void RViz2Bag_Player::pbtn__rosbag_stop__clicked()
+  bool RViz2Bag_Player::pbtn__rosbag_stop__clicked()
   {
+    if (ui_player_->pbtn__rosbag_stop->isEnabled() == false) {
+      return false;
+    }
+
     stop();
 
     ui_player_->dspin__rosbag_elapsed_time->setValue(0.0);
@@ -411,12 +462,18 @@ namespace rviz2_bag
     ui_player_->pbtn__play_next->setEnabled(false);
     ui_player_->pbtn__select_all->setEnabled(true);
     ui_player_->pbtn__deselect_all->setEnabled(true);
+
+    return true;
   }
 
-  void RViz2Bag_Player::pbtn__rosbag_pause__clicked()
+  bool RViz2Bag_Player::pbtn__rosbag_pause__clicked()
   {
+    if (ui_player_->pbtn__rosbag_pause->isEnabled() == false) {
+      return false;
+    }
     if (bag_player_ == nullptr)
     {
+      return false;
     }
     else
     {
@@ -434,6 +491,8 @@ namespace rviz2_bag
       ui_player_->pbtn__select_all->setEnabled(false);
       ui_player_->pbtn__deselect_all->setEnabled(false);
     }
+
+    return true;
   }
 
   void RViz2Bag_Player::pbtn__backward__clicked()
@@ -479,6 +538,33 @@ namespace rviz2_bag
     {
       ui_player_->dspin__rosbag_elapsed_time->setValue(elapsed_time_ms.count() / 1000.0);
     }
+  }
+
+  void RViz2Bag_Player::callback__srv__play(
+    const rviz2_bag_interfaces::srv::Command::Request::SharedPtr request,
+    rviz2_bag_interfaces::srv::Command::Response::SharedPtr response
+  ) {
+    (void)request;
+
+    response->result = pbtn__rosbag_play__clicked();
+  }
+
+  void RViz2Bag_Player::callback__srv__pause(
+    const rviz2_bag_interfaces::srv::Command::Request::SharedPtr request,
+    rviz2_bag_interfaces::srv::Command::Response::SharedPtr response
+  ) {
+    (void)request;
+
+    response->result = pbtn__rosbag_pause__clicked();
+  }
+
+  void RViz2Bag_Player::callback__srv__stop(
+    const rviz2_bag_interfaces::srv::Command::Request::SharedPtr request,
+    rviz2_bag_interfaces::srv::Command::Response::SharedPtr response
+  ) {
+    (void)request;
+
+    response->result = pbtn__rosbag_stop__clicked();
   }
 
 } // namespace rviz2_bag

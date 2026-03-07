@@ -5,6 +5,7 @@
 
 #ifndef Q_MOC_RUN
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp/logger.hpp>
 #include <rviz_common/panel.hpp>
 #include <rviz_common/config.hpp>
 #include <rviz_common/display_context.hpp>
@@ -26,6 +27,7 @@
 #include <QtWidgets/QTreeWidgetItem>
 
 #include "rviz2_bag/rosbag2_transport/recorder.hpp"
+#include "rviz2_bag_interfaces/srv/command.hpp"
 
 #include "ui_recorder.h"
 #endif
@@ -53,9 +55,9 @@ namespace rviz2_bag
 
     protected Q_SLOTS:
         void pbtn__output_dir__clicked();
-        void pbtn__record__clicked();
-        void pbtn__pause__clicked();
-        void pbtn__stop__clicked();
+        bool pbtn__record__clicked();
+        bool pbtn__pause__clicked();
+        bool pbtn__stop__clicked();
         void pbtn__select_all__clicked();
         void pbtn__deselect_all__clicked();
         void pbtn__topic_refresh__clicked();
@@ -63,6 +65,10 @@ namespace rviz2_bag
 
     protected:
         rclcpp::Node::SharedPtr nh_;
+        std::shared_ptr<rclcpp::Logger> logger_;
+        rclcpp::Service<rviz2_bag_interfaces::srv::Command>::SharedPtr service_record_;
+        rclcpp::Service<rviz2_bag_interfaces::srv::Command>::SharedPtr service_pause_;
+        rclcpp::Service<rviz2_bag_interfaces::srv::Command>::SharedPtr service_stop_;
         Ui::Recorder *ui_recorder_;
         // std::unique_ptr<std::thread> spin_thread_;
 
@@ -99,6 +105,19 @@ namespace rviz2_bag
         void tree_check_all(Qt::CheckState state);
         bool record();
         void stop();
+
+        void callback__srv__record(
+            const rviz2_bag_interfaces::srv::Command::Request::SharedPtr request,
+            rviz2_bag_interfaces::srv::Command::Response::SharedPtr response
+        );
+        void callback__srv__pause(
+            const rviz2_bag_interfaces::srv::Command::Request::SharedPtr request,
+            rviz2_bag_interfaces::srv::Command::Response::SharedPtr response
+        );
+        void callback__srv__stop(
+            const rviz2_bag_interfaces::srv::Command::Request::SharedPtr request,
+            rviz2_bag_interfaces::srv::Command::Response::SharedPtr response
+        );
     };
 
 } // namespace rviz2_bag
