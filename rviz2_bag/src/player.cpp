@@ -82,18 +82,23 @@ namespace rviz2_bag
 
   void RViz2Bag_Player::onInitialize()
   {
-    nh_ = getDisplayContext()->getRosNodeAbstraction().lock()->get_raw_node();
-    logger_ = std::make_shared<rclcpp::Logger>(nh_->get_logger().get_child(getName().toStdString()));
+    rviz_nh_ = getDisplayContext()->getRosNodeAbstraction().lock()->get_raw_node();
+    logger_ = std::make_shared<rclcpp::Logger>(rviz_nh_->get_logger().get_child(getName().toStdString()));
 
-    auto service_names_and_types = nh_->get_service_names_and_types();
+    auto service_names_and_types = rviz_nh_->get_service_names_and_types();
+
+    std::string rviz_namespace = rviz_nh_->get_namespace();
+    rviz_namespace = rviz_namespace + (rviz_namespace == "/" ? "" : "/") + std::string(rviz_nh_->get_name()) + "/rviz2_bag";
+
+    std::string panel_name = getName().toLower().toStdString();
 
     {
-      std::string server_name = std::string(nh_->get_name()) + "/rviz2_bag/" + getName().toStdString() + "/play";
+      std::string server_name = rviz_namespace + "/" + panel_name + "/play";
 
       if (service_names_and_types.count(server_name) > 0) {
         RCLCPP_WARN_STREAM(*logger_, "The service already exists: " << server_name);
       } else {
-        service_play_ = nh_->create_service<rviz2_bag_interfaces::srv::Command>(
+        service_play_ = rviz_nh_->create_service<rviz2_bag_interfaces::srv::Command>(
           server_name,
           std::bind(&RViz2Bag_Player::callback__srv__play, this, std::placeholders::_1, std::placeholders::_2)
         );
@@ -101,12 +106,12 @@ namespace rviz2_bag
     }
 
     {
-      std::string server_name = std::string(nh_->get_name()) + "/rviz2_bag/" + getName().toStdString() + "/pause";
+      std::string server_name = rviz_namespace + "/" + panel_name + "/pause";
 
       if (service_names_and_types.count(server_name) > 0) {
         RCLCPP_WARN_STREAM(*logger_, "The service already exists: " << server_name);
       } else {
-        service_pause_ = nh_->create_service<rviz2_bag_interfaces::srv::Command>(
+        service_pause_ = rviz_nh_->create_service<rviz2_bag_interfaces::srv::Command>(
           server_name,
           std::bind(&RViz2Bag_Player::callback__srv__pause, this, std::placeholders::_1, std::placeholders::_2)
         );
@@ -114,12 +119,12 @@ namespace rviz2_bag
     }
 
     {
-      std::string server_name = std::string(nh_->get_name()) + "/rviz2_bag/" + getName().toStdString() + "/stop";
+      std::string server_name = rviz_namespace + "/" + panel_name + "/stop";
 
       if (service_names_and_types.count(server_name) > 0) {
         RCLCPP_WARN_STREAM(*logger_, "The service already exists: " << server_name);
       } else {
-        service_stop_ = nh_->create_service<rviz2_bag_interfaces::srv::Command>(
+        service_stop_ = rviz_nh_->create_service<rviz2_bag_interfaces::srv::Command>(
           server_name,
           std::bind(&RViz2Bag_Player::callback__srv__stop, this, std::placeholders::_1, std::placeholders::_2)
         );
@@ -368,7 +373,7 @@ namespace rviz2_bag
         std::move(reader),
         *storage_options_,
         play_options,
-        nh_, logger_);
+        rviz_nh_, logger_);
 
     connect(
         bag_player_.get(),

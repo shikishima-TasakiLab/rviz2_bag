@@ -61,7 +61,7 @@ namespace rviz2_bag
         void update_elapsed_time__callback(rcutils_time_point_value_t time_point);
 
     protected:
-        rclcpp::Node::SharedPtr nh_;
+        rclcpp::Node::SharedPtr rviz_nh_;
         std::shared_ptr<rclcpp::Logger> logger_;
         rclcpp::Service<rviz2_bag_interfaces::srv::Command>::SharedPtr service_play_;
         rclcpp::Service<rviz2_bag_interfaces::srv::Command>::SharedPtr service_pause_;
