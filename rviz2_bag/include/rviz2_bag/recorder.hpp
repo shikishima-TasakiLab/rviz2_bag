@@ -65,12 +65,15 @@ namespace rviz2_bag
 
     protected:
         rclcpp::Node::SharedPtr nh_;
+        rclcpp::Node::SharedPtr rviz_nh_;
+        std::shared_ptr<rclcpp::executors::MultiThreadedExecutor> executor_;
+        std::unique_ptr<std::thread> spin_thread_;
+
         std::shared_ptr<rclcpp::Logger> logger_;
         rclcpp::Service<rviz2_bag_interfaces::srv::Command>::SharedPtr service_record_;
         rclcpp::Service<rviz2_bag_interfaces::srv::Command>::SharedPtr service_pause_;
         rclcpp::Service<rviz2_bag_interfaces::srv::Command>::SharedPtr service_stop_;
         Ui::Recorder *ui_recorder_;
-        // std::unique_ptr<std::thread> spin_thread_;
 
         std::unique_ptr<rosbag2_transport::RecordOptions> record_options_;
         std::unique_ptr<rosbag2_storage::StorageOptions> storage_options_;

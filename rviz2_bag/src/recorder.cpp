@@ -272,22 +272,32 @@ namespace rviz2_bag
   RViz2Bag_Recorder::~RViz2Bag_Recorder()
   {
     stop();
+
+    if (spin_thread_ && spin_thread_->joinable()) {
+      executor_->cancel();
+      spin_thread_->join();
+    }
   }
 
   void RViz2Bag_Recorder::onInitialize()
   {
-    nh_ = getDisplayContext()->getRosNodeAbstraction().lock()->get_raw_node();
-    logger_ = std::make_shared<rclcpp::Logger>(nh_->get_logger().get_child(getName().toStdString()));
+    rviz_nh_ = getDisplayContext()->getRosNodeAbstraction().lock()->get_raw_node();
+    logger_ = std::make_shared<rclcpp::Logger>(rviz_nh_->get_logger().get_child(getName().toStdString()));
 
-    auto service_names_and_types = nh_->get_service_names_and_types();
+    auto service_names_and_types = rviz_nh_->get_service_names_and_types();
+
+    std::string rviz_namespace = rviz_nh_->get_namespace();
+    rviz_namespace = rviz_namespace + (rviz_namespace == "/" ? "" : "/") + std::string(rviz_nh_->get_name()) + "/rviz2_bag";
+
+    std::string panel_name = getName().toLower().toStdString();
 
     {
-      std::string server_name = std::string(nh_->get_name()) + "/rviz2_bag/" + getName().toStdString() + "/record";
+      std::string server_name = rviz_namespace + "/" + panel_name + "/record";
 
       if (service_names_and_types.count(server_name) > 0) {
         RCLCPP_WARN_STREAM(*logger_, "The service already exists: " << server_name);
       } else {
-        service_record_ = nh_->create_service<rviz2_bag_interfaces::srv::Command>(
+        service_record_ = rviz_nh_->create_service<rviz2_bag_interfaces::srv::Command>(
           server_name,
           std::bind(&RViz2Bag_Recorder::callback__srv__record, this, std::placeholders::_1, std::placeholders::_2)
         );
@@ -295,12 +305,12 @@ namespace rviz2_bag
     }
 
     {
-      std::string server_name = std::string(nh_->get_name()) + "/rviz2_bag/" + getName().toStdString() + "/pause";
+      std::string server_name = rviz_namespace + "/" + panel_name + "/pause";
 
       if (service_names_and_types.count(server_name) > 0) {
         RCLCPP_WARN_STREAM(*logger_, "The service already exists: " << server_name);
       } else {
-        service_pause_ = nh_->create_service<rviz2_bag_interfaces::srv::Command>(
+        service_pause_ = rviz_nh_->create_service<rviz2_bag_interfaces::srv::Command>(
           server_name,
           std::bind(&RViz2Bag_Recorder::callback__srv__pause, this, std::placeholders::_1, std::placeholders::_2)
         );
@@ -308,16 +318,31 @@ namespace rviz2_bag
     }
 
     {
-      std::string server_name = std::string(nh_->get_name()) + "/rviz2_bag/" + getName().toStdString() + "/stop";
+      std::string server_name = rviz_namespace + "/" + panel_name + "/stop";
 
       if (service_names_and_types.count(server_name) > 0) {
         RCLCPP_WARN_STREAM(*logger_, "The service already exists: " << server_name);
       } else {
-        service_stop_ = nh_->create_service<rviz2_bag_interfaces::srv::Command>(
+        service_stop_ = rviz_nh_->create_service<rviz2_bag_interfaces::srv::Command>(
           server_name,
           std::bind(&RViz2Bag_Recorder::callback__srv__stop, this, std::placeholders::_1, std::placeholders::_2)
         );
       }
+    }
+
+    try {
+      nh_ = std::make_shared<rclcpp::Node>(panel_name + "_node", rviz_namespace);
+      executor_ = std::make_shared<rclcpp::executors::MultiThreadedExecutor>();
+      executor_->add_node(nh_);
+
+      spin_thread_ = std::make_unique<std::thread>([this]() {
+        this->executor_->spin();
+      });
+    } catch (const std::exception &e) {
+      RCLCPP_WARN_STREAM(*logger_, "Failed to create independent executor: " << e.what() << ". Using RViz2's executor instead (limited to 30 Hz).");
+      nh_ = rviz_nh_;
+      executor_ = nullptr;
+      spin_thread_ = nullptr;
     }
   }
 
@@ -591,7 +616,7 @@ namespace rviz2_bag
   {
     tree_clear_all();
 
-    std::map<std::string, std::vector<std::string>> topic_infos = nh_->get_topic_names_and_types();
+    std::map<std::string, std::vector<std::string>> topic_infos = rviz_nh_->get_topic_names_and_types();
     for (const auto &topic_itr : topic_infos)
     {
       std::string topic_name = topic_itr.first;
