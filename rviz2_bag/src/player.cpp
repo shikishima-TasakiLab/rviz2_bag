@@ -130,6 +130,17 @@ namespace rviz2_bag
         );
       }
     }
+
+    try {
+      nh_ = std::make_shared<rclcpp::Node>(panel_name + "_node", rviz_namespace);
+    } catch (const std::exception &e) {
+      RCLCPP_WARN_STREAM(*logger_, "Failed to create independent executor: " << e.what());
+      nh_ = rviz_nh_;
+    }
+
+    {
+      pub_playing_status_ = nh_->create_publisher<std_msgs::msg::Bool>("playing_status", 10);
+    }
   }
 
   void RViz2Bag_Player::save(rviz_common::Config config) const
@@ -373,7 +384,7 @@ namespace rviz2_bag
         std::move(reader),
         *storage_options_,
         play_options,
-        rviz_nh_, logger_);
+        nh_, logger_);
 
     connect(
         bag_player_.get(),
@@ -426,6 +437,8 @@ namespace rviz2_bag
         hsld__rosbag_elapsed_time__sliderReleased();
     }
 
+    pub_playing_status_->publish(std_msgs::msg::Bool().set__data(true));
+
     ui_player_->tree__rosbag_topics->setEnabled(false);
 
     ui_player_->pbtn__rosbag_open->setEnabled(false);
@@ -450,6 +463,8 @@ namespace rviz2_bag
     }
 
     stop();
+
+    pub_playing_status_->publish(std_msgs::msg::Bool().set__data(false));
 
     ui_player_->dspin__rosbag_elapsed_time->setValue(0.0);
     ui_player_->hsld__rosbag_elapsed_time->setValue(0);
@@ -483,6 +498,8 @@ namespace rviz2_bag
     else
     {
       bag_player_->pause();
+
+      pub_playing_status_->publish(std_msgs::msg::Bool().set__data(false));
 
       ui_player_->pbtn__rosbag_open->setEnabled(false);
       ui_player_->dspin__rosbag_clock->setEnabled(false);

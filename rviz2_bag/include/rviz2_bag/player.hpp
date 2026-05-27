@@ -9,6 +9,9 @@
 #include <rviz_common/panel.hpp>
 #include <rviz_common/config.hpp>
 #include <rviz_common/display_context.hpp>
+
+#include <std_msgs/msg/bool.hpp>
+
 #include <rosbag2_transport/play_options.hpp>
 #include <rosbag2_transport/reader_writer_factory.hpp>
 #include <rosbag2_storage/metadata_io.hpp>
@@ -61,11 +64,13 @@ namespace rviz2_bag
         void update_elapsed_time__callback(rcutils_time_point_value_t time_point);
 
     protected:
+        rclcpp::Node::SharedPtr nh_;
         rclcpp::Node::SharedPtr rviz_nh_;
         std::shared_ptr<rclcpp::Logger> logger_;
         rclcpp::Service<rviz2_bag_interfaces::srv::Command>::SharedPtr service_play_;
         rclcpp::Service<rviz2_bag_interfaces::srv::Command>::SharedPtr service_pause_;
         rclcpp::Service<rviz2_bag_interfaces::srv::Command>::SharedPtr service_stop_;
+        rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr pub_playing_status_;
         Ui::Player *ui_player_;
 
         std::unique_ptr<rosbag2_storage::StorageOptions> storage_options_;

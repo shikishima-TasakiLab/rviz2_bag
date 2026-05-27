@@ -10,6 +10,8 @@
 #include <rviz_common/config.hpp>
 #include <rviz_common/display_context.hpp>
 
+#include <std_msgs/msg/bool.hpp>
+
 #include <rosbag2_compression/base_compressor_interface.hpp>
 #include <rosbag2_cpp/converter_interfaces/serialization_format_converter.hpp>
 #include <rosbag2_cpp/converter_interfaces/serialization_format_serializer.hpp>
@@ -73,6 +75,7 @@ namespace rviz2_bag
         rclcpp::Service<rviz2_bag_interfaces::srv::Command>::SharedPtr service_record_;
         rclcpp::Service<rviz2_bag_interfaces::srv::Command>::SharedPtr service_pause_;
         rclcpp::Service<rviz2_bag_interfaces::srv::Command>::SharedPtr service_stop_;
+        rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr pub_recording_status_;
         Ui::Recorder *ui_recorder_;
 
         std::unique_ptr<rosbag2_transport::RecordOptions> record_options_;

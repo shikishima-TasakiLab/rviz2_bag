@@ -344,6 +344,10 @@ namespace rviz2_bag
       executor_ = nullptr;
       spin_thread_ = nullptr;
     }
+
+    {
+      pub_recording_status_ = nh_->create_publisher<std_msgs::msg::Bool>("recording_status", 10);
+    }
   }
 
   void RViz2Bag_Recorder::save(rviz_common::Config config) const
@@ -532,6 +536,8 @@ namespace rviz2_bag
     {
       bag_recorder_->resume();
     }
+    
+    pub_recording_status_->publish(std_msgs::msg::Bool().set__data(true));
 
     ui_recorder_->tab_2->setEnabled(false);
     ui_recorder_->pbtn__output_dir->setEnabled(false);
@@ -559,6 +565,8 @@ namespace rviz2_bag
 
     bag_recorder_->pause();
 
+    pub_recording_status_->publish(std_msgs::msg::Bool().set__data(false));
+
     ui_recorder_->tab_2->setEnabled(false);
     ui_recorder_->pbtn__output_dir->setEnabled(false);
     ui_recorder_->ledit__name_prefix->setEnabled(false);
@@ -584,6 +592,8 @@ namespace rviz2_bag
     }
 
     stop();
+
+    pub_recording_status_->publish(std_msgs::msg::Bool().set__data(false));
 
     ui_recorder_->tab_2->setEnabled(true);
     ui_recorder_->pbtn__output_dir->setEnabled(true);
