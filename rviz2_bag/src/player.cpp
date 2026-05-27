@@ -88,9 +88,10 @@ namespace rviz2_bag
     auto service_names_and_types = rviz_nh_->get_service_names_and_types();
 
     std::string rviz_namespace = rviz_nh_->get_namespace();
-    rviz_namespace = rviz_namespace + (rviz_namespace == "/" ? "" : "/") + std::string(rviz_nh_->get_name()) + "/rviz2_bag";
+    rviz_namespace = rviz_namespace + (rviz_namespace == "/" ? "" : "/") + std::string(rviz_nh_->get_name()) + "/rviz2_bag_player";
 
     std::string panel_name = getName().toLower().toStdString();
+    std::replace(panel_name.begin(), panel_name.end(), ' ', '_');
 
     {
       std::string server_name = rviz_namespace + "/" + panel_name + "/play";
@@ -139,7 +140,7 @@ namespace rviz2_bag
     }
 
     {
-      pub_playing_status_ = nh_->create_publisher<std_msgs::msg::Bool>("playing_status", 10);
+      pub_playing_status_ = nh_->create_publisher<std_msgs::msg::Bool>("~/playing_status", 10);
     }
   }
 

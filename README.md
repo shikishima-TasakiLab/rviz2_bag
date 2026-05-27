@@ -36,9 +36,15 @@ The following table describes the functionality of the Player UI and its corresp
 
 | Server | Request and Response Structure |
 | :--- | :--- |
-| **/rviz/rviz2_bag/(Panel Name)/play** | [rviz2_bag_interfaces/srv/Command](rviz2_bag_interfaces/srv/Command.srv) |
-| **/rviz/rviz2_bag/(Panel Name)/pause** | [rviz2_bag_interfaces/srv/Command](rviz2_bag_interfaces/srv/Command.srv) |
-| **/rviz/rviz2_bag/(Panel Name)/stop** | [rviz2_bag_interfaces/srv/Command](rviz2_bag_interfaces/srv/Command.srv) |
+| **/rviz/rviz2_bag_player/(Panel Name)/play** | [rviz2_bag_interfaces/srv/Command](rviz2_bag_interfaces/srv/Command.srv) |
+| **/rviz/rviz2_bag_player/(Panel Name)/pause** | [rviz2_bag_interfaces/srv/Command](rviz2_bag_interfaces/srv/Command.srv) |
+| **/rviz/rviz2_bag_player/(Panel Name)/stop** | [rviz2_bag_interfaces/srv/Command](rviz2_bag_interfaces/srv/Command.srv) |
+
+### Topic
+
+| Topic | Message Type |
+| :--- | :--- |
+| **/rviz/rviz2_bag_player/(Panel Name)_node/playing_status** | std_msg/msg/Bool |
 
 ## Recorder
 
@@ -90,9 +96,15 @@ The following table describes the functionality of the Recorder UI and its corre
 
 | Server | Request and Response Structure |
 | :--- | :--- |
-| **/rviz/rviz2_bag/(Panel Name)/record** | [rviz2_bag_interfaces/srv/Command](rviz2_bag_interfaces/srv/Command.srv) |
-| **/rviz/rviz2_bag/(Panel Name)/pause** | [rviz2_bag_interfaces/srv/Command](rviz2_bag_interfaces/srv/Command.srv) |
-| **/rviz/rviz2_bag/(Panel Name)/stop** | [rviz2_bag_interfaces/srv/Command](rviz2_bag_interfaces/srv/Command.srv) |
+| **/rviz/rviz2_bag_recorder/(Panel Name)/record** | [rviz2_bag_interfaces/srv/Command](rviz2_bag_interfaces/srv/Command.srv) |
+| **/rviz/rviz2_bag_recorder/(Panel Name)/pause** | [rviz2_bag_interfaces/srv/Command](rviz2_bag_interfaces/srv/Command.srv) |
+| **/rviz/rviz2_bag_recorder/(Panel Name)/stop** | [rviz2_bag_interfaces/srv/Command](rviz2_bag_interfaces/srv/Command.srv) |
+
+### Topic
+
+| Topic | Message Type |
+| :--- | :--- |
+| **/rviz/rviz2_bag_recorder/(Panel Name)_node/redording_status** | std_msg/msg/Bool |
 
 ## NOTICE
 
